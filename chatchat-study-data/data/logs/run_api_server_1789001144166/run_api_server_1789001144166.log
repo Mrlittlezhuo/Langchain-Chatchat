@@ -1,0 +1,4 @@
+2026-09-10 09:51:07,433 httpx        3641807 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-10 09:51:09,595 httpx        3641807 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-10 09:51:18,901 httpx        3641807 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-10 09:51:35,015 httpx        3641807 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"

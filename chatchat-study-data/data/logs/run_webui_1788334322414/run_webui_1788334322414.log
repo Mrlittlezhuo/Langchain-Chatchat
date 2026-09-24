@@ -1,0 +1,1 @@
+2026-09-02 19:54:36,305 httpx        3036203 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"

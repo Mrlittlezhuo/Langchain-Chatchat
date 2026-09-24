@@ -1,0 +1,2 @@
+2026-08-21 14:22:11,628 faiss.loader 1684232 INFO     Loading faiss with AVX2 support.
+2026-08-21 14:22:11,635 faiss.loader 1684232 INFO     Successfully loaded faiss with AVX2 support.

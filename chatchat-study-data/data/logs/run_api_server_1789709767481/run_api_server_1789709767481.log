@@ -1,0 +1,45 @@
+2026-09-18 13:36:55,611 httpx        1290944 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-18 13:37:56,699 httpx        1290944 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-18 13:41:05,533 httpx        1290944 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-18 13:41:05,728 httpx        1290944 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-18 13:41:06,195 httpx        1290944 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-18 13:41:06,659 httpx        1290944 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-18 13:41:07,123 httpx        1290944 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-18 13:41:07,590 httpx        1290944 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-18 13:41:08,050 httpx        1290944 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-18 13:41:08,505 httpx        1290944 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-18 13:41:09,005 httpx        1290944 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-18 13:41:09,500 httpx        1290944 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-18 13:41:09,998 httpx        1290944 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-18 13:50:20,602 httpx        1290944 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-18 13:50:45,553 httpx        1290944 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-18 13:53:48,957 httpx        1290944 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-18 13:53:49,798 root         1290944 ERROR    TypeError: Caught exception: argument of type 'NoneType' is not iterable
+Traceback (most recent call last):
+  File "/home/lab239/chenzhuo/Langchain-Chatchat/libs/chatchat-server/langchain_chatchat/agents/platform_tools/base.py", line 96, in wrap_done
+    await fn
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/langchain/chains/base.py", line 212, in ainvoke
+    raise e
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/langchain/chains/base.py", line 203, in ainvoke
+    await self._acall(inputs, run_manager=run_manager)
+  File "/home/lab239/chenzhuo/Langchain-Chatchat/libs/chatchat-server/langchain_chatchat/agents/all_tools_agent.py", line 149, in _acall
+    next_step_output = await self._atake_next_step(
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/langchain/agents/agent.py", line 1275, in _atake_next_step
+    [
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/langchain/agents/agent.py", line 1275, in <listcomp>
+    [
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/langchain/agents/agent.py", line 1359, in _aiter_next_step
+    result = await asyncio.gather(
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/asyncio/tasks.py", line 304, in __wakeup
+    future.result()
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/asyncio/tasks.py", line 232, in __step
+    result = coro.send(None)
+  File "/home/lab239/chenzhuo/Langchain-Chatchat/libs/chatchat-server/langchain_chatchat/agents/all_tools_agent.py", line 378, in _aperform_agent_action
+    observation = await InvalidTool().arun(
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/langchain_core/tools.py", line 557, in arun
+    raise e
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/langchain_core/tools.py", line 499, in arun
+    tool_args, tool_kwargs = self._to_args_and_kwargs(parsed_input)
+  File "/home/lab239/chenzhuo/Langchain-Chatchat/libs/chatchat-server/chatchat/server/agent/tools_factory/tools_registry.py", line 55, in _new_to_args_and_kwargs
+    if "args" in tool_input:
+TypeError: argument of type 'NoneType' is not iterable

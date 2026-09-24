@@ -1,0 +1,1 @@
+2026-09-15 15:27:40,900 httpx        3112022 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"

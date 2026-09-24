@@ -1,0 +1,3 @@
+2026-09-09 15:00:14,114 faiss.loader 1859294 INFO     Loading faiss with AVX2 support.
+2026-09-09 15:00:14,120 faiss.loader 1859294 INFO     Successfully loaded faiss with AVX2 support.
+2026-09-09 15:00:16,856 httpx        1859294 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"

@@ -1,0 +1,1 @@
+2026-09-11 15:05:32,735 httpx        2440934 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 500 Internal Server Error"

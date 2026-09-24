@@ -1,0 +1,6 @@
+2026-08-21 15:09:40,113 faiss.loader 2578731 INFO     Loading faiss with AVX2 support.
+2026-08-21 15:09:40,120 faiss.loader 2578731 INFO     Successfully loaded faiss with AVX2 support.
+2026-08-21 15:48:07,755 httpx        2578731 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-21 16:30:50,425 httpx        2578731 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-21 16:32:42,937 httpx        2578731 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-21 16:33:29,472 httpx        2578731 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"

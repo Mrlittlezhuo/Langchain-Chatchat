@@ -1,0 +1,35 @@
+2026-09-18 16:02:02,646 httpx        1531617 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-18 16:02:02,800 langchain_chatchat.agents.all_tools_agent 1531617 INFO     agent_trace iteration=1 agent_finish=False
+2026-09-18 16:02:02,800 langchain_chatchat.agents.all_tools_agent 1531617 INFO     agent_trace iteration=1 action=AgentAction tool=calculate tool_input={'text': '(123+77)*8'} observation_len=4
+2026-09-18 16:02:02,832 httpx        1531617 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-18 16:02:02,898 langchain_chatchat.agents.all_tools_agent 1531617 INFO     agent_trace iteration=2 agent_finish=True
+2026-09-18 16:04:54,058 httpx        1531617 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-18 16:04:54,936 root         1531617 ERROR    TypeError: Caught exception: argument of type 'NoneType' is not iterable
+Traceback (most recent call last):
+  File "/home/lab239/chenzhuo/Langchain-Chatchat/libs/chatchat-server/langchain_chatchat/agents/platform_tools/base.py", line 96, in wrap_done
+    await fn
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/langchain/chains/base.py", line 212, in ainvoke
+    raise e
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/langchain/chains/base.py", line 203, in ainvoke
+    await self._acall(inputs, run_manager=run_manager)
+  File "/home/lab239/chenzhuo/Langchain-Chatchat/libs/chatchat-server/langchain_chatchat/agents/all_tools_agent.py", line 149, in _acall
+    next_step_output = await self._atake_next_step(
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/langchain/agents/agent.py", line 1275, in _atake_next_step
+    [
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/langchain/agents/agent.py", line 1275, in <listcomp>
+    [
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/langchain/agents/agent.py", line 1359, in _aiter_next_step
+    result = await asyncio.gather(
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/asyncio/tasks.py", line 304, in __wakeup
+    future.result()
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/asyncio/tasks.py", line 232, in __step
+    result = coro.send(None)
+  File "/home/lab239/chenzhuo/Langchain-Chatchat/libs/chatchat-server/langchain_chatchat/agents/all_tools_agent.py", line 398, in _aperform_agent_action
+    observation = await InvalidTool().arun(
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/langchain_core/tools.py", line 557, in arun
+    raise e
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/langchain_core/tools.py", line 499, in arun
+    tool_args, tool_kwargs = self._to_args_and_kwargs(parsed_input)
+  File "/home/lab239/chenzhuo/Langchain-Chatchat/libs/chatchat-server/chatchat/server/agent/tools_factory/tools_registry.py", line 55, in _new_to_args_and_kwargs
+    if "args" in tool_input:
+TypeError: argument of type 'NoneType' is not iterable

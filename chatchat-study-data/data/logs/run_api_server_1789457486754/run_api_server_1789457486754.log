@@ -1,0 +1,15 @@
+2026-09-15 15:31:34,250 httpx        3119372 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-15 15:31:51,997 httpx        3119372 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-15 15:32:16,794 httpx        3119372 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-15 15:32:29,974 httpx        3119372 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-15 15:32:55,055 faiss.loader 3119372 INFO     Loading faiss with AVX2 support.
+2026-09-15 15:32:55,060 faiss.loader 3119372 INFO     Successfully loaded faiss with AVX2 support.
+2026-09-15 15:32:55,840 httpx        3119372 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-15 15:33:55,852 httpx        3119372 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-15 16:00:41,198 httpx        3119372 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-15 16:01:04,382 httpx        3119372 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-15 16:01:05,000 httpx        3119372 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-15 16:01:05,651 httpx        3119372 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-15 16:01:49,155 httpx        3119372 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-15 16:01:49,776 httpx        3119372 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-15 16:03:56,785 httpx        3119372 INFO     HTTP Request: POST http://127.0.0.1:11434/v1/chat/completions "HTTP/1.1 200 OK"

@@ -1,0 +1,1086 @@
+2026-09-15 13:45:09,340 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 500 Internal Server Error"
+2026-09-15 14:00:47,949 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 500 Internal Server Error"
+2026-09-15 14:46:26,427 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 500 Internal Server Error"
+2026-09-15 14:47:04,478 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 500 Internal Server Error"
+2026-09-15 14:47:04,578 httpx        781053 INFO     HTTP Request: POST http://127.0.0.1:7861/chat/chat/completions "HTTP/1.1 200 OK"
+2026-09-15 14:47:14,661 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/knowledge_base/list_knowledge_bases "HTTP/1.1 200 OK"
+2026-09-15 14:47:15,333 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/knowledge_base/list_knowledge_bases "HTTP/1.1 200 OK"
+2026-09-15 14:47:45,913 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/knowledge_base/list_knowledge_bases "HTTP/1.1 200 OK"
+2026-09-15 14:47:46,088 httpx        781053 INFO     HTTP Request: POST http://10.10.12.248:7861/knowledge_base/local_kb/samples/chat/completions "HTTP/1.1 200 OK"
+2026-09-15 14:48:04,062 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/knowledge_base/list_knowledge_bases "HTTP/1.1 200 OK"
+2026-09-15 14:48:04,182 httpx        781053 INFO     HTTP Request: POST http://10.10.12.248:7861/knowledge_base/local_kb/samples/chat/completions "HTTP/1.1 200 OK"
+2026-09-15 14:49:08,033 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/knowledge_base/list_knowledge_bases "HTTP/1.1 200 OK"
+2026-09-15 14:49:10,125 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 500 Internal Server Error"
+2026-09-15 14:49:12,067 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/knowledge_base/list_knowledge_bases "HTTP/1.1 200 OK"
+2026-09-15 14:49:12,722 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/knowledge_base/list_knowledge_bases "HTTP/1.1 200 OK"
+2026-09-15 14:49:27,365 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/knowledge_base/list_knowledge_bases "HTTP/1.1 200 OK"
+2026-09-15 14:49:27,447 httpx        781053 INFO     HTTP Request: POST http://10.10.12.248:7861/knowledge_base/local_kb/samples/chat/completions "HTTP/1.1 200 OK"
+2026-09-15 15:12:35,281 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 500 Internal Server Error"
+2026-09-15 15:12:37,349 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 500 Internal Server Error"
+2026-09-15 15:12:45,576 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 500 Internal Server Error"
+2026-09-15 15:12:52,026 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 500 Internal Server Error"
+2026-09-15 15:12:52,056 httpx        781053 INFO     HTTP Request: POST http://127.0.0.1:7861/chat/chat/completions "HTTP/1.1 200 OK"
+2026-09-15 15:13:46,085 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 500 Internal Server Error"
+2026-09-15 15:13:46,116 httpx        781053 INFO     HTTP Request: POST http://127.0.0.1:7861/chat/chat/completions "HTTP/1.1 200 OK"
+2026-09-15 15:15:19,094 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 15:15:22,119 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 15:15:26,837 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 15:15:29,608 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 15:15:29,635 httpx        781053 INFO     HTTP Request: POST http://127.0.0.1:7861/chat/chat/completions "HTTP/1.1 200 OK"
+2026-09-15 15:15:39,620 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 15:15:39,645 httpx        781053 INFO     HTTP Request: POST http://127.0.0.1:7861/chat/chat/completions "HTTP/1.1 200 OK"
+2026-09-15 15:15:56,854 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 15:15:56,880 httpx        781053 INFO     HTTP Request: POST http://127.0.0.1:7861/chat/chat/completions "HTTP/1.1 200 OK"
+2026-09-15 15:16:03,153 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 15:16:03,186 httpx        781053 INFO     HTTP Request: POST http://127.0.0.1:7861/chat/chat/completions "HTTP/1.1 200 OK"
+2026-09-15 15:16:08,067 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 15:16:08,130 httpx        781053 INFO     HTTP Request: POST http://127.0.0.1:7861/chat/chat/completions "HTTP/1.1 200 OK"
+2026-09-15 15:16:16,589 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 15:16:16,629 httpx        781053 INFO     HTTP Request: POST http://127.0.0.1:7861/chat/chat/completions "HTTP/1.1 200 OK"
+2026-09-15 15:16:37,317 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 15:16:37,348 httpx        781053 INFO     HTTP Request: POST http://127.0.0.1:7861/chat/chat/completions "HTTP/1.1 200 OK"
+2026-09-15 15:17:55,811 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 15:18:05,555 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 15:18:06,686 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 15:18:16,731 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 15:18:20,239 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 15:18:20,269 httpx        781053 INFO     HTTP Request: POST http://127.0.0.1:7861/chat/chat/completions "HTTP/1.1 200 OK"
+2026-09-15 15:19:19,672 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 15:19:19,701 httpx        781053 INFO     HTTP Request: POST http://127.0.0.1:7861/chat/chat/completions "HTTP/1.1 200 OK"
+2026-09-15 15:22:03,220 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/knowledge_base/list_knowledge_bases "HTTP/1.1 200 OK"
+2026-09-15 15:22:03,373 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/knowledge_base/list_knowledge_bases "HTTP/1.1 200 OK"
+2026-09-15 15:22:07,773 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 15:22:07,914 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 15:22:08,222 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/knowledge_base/list_knowledge_bases "HTTP/1.1 200 OK"
+2026-09-15 15:22:08,446 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/knowledge_base/list_knowledge_bases "HTTP/1.1 200 OK"
+2026-09-15 15:22:11,249 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 15:22:15,686 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/knowledge_base/list_knowledge_bases "HTTP/1.1 200 OK"
+2026-09-15 15:22:15,879 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/knowledge_base/list_knowledge_bases "HTTP/1.1 200 OK"
+2026-09-15 15:22:26,344 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/knowledge_base/list_knowledge_bases "HTTP/1.1 200 OK"
+2026-09-15 15:31:30,260 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 15:31:34,002 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 15:31:34,028 httpx        781053 INFO     HTTP Request: POST http://127.0.0.1:7861/chat/chat/completions "HTTP/1.1 200 OK"
+2026-09-15 15:31:51,817 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 15:31:51,843 httpx        781053 INFO     HTTP Request: POST http://127.0.0.1:7861/chat/chat/completions "HTTP/1.1 200 OK"
+2026-09-15 15:32:16,631 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 15:32:16,670 httpx        781053 INFO     HTTP Request: POST http://127.0.0.1:7861/chat/chat/completions "HTTP/1.1 200 OK"
+2026-09-15 15:32:29,833 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 15:32:29,859 httpx        781053 INFO     HTTP Request: POST http://127.0.0.1:7861/chat/chat/completions "HTTP/1.1 200 OK"
+2026-09-15 15:32:35,710 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/knowledge_base/list_knowledge_bases "HTTP/1.1 200 OK"
+2026-09-15 15:32:35,819 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/knowledge_base/list_knowledge_bases "HTTP/1.1 200 OK"
+2026-09-15 15:32:40,120 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 15:32:41,883 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/knowledge_base/list_knowledge_bases "HTTP/1.1 200 OK"
+2026-09-15 15:32:42,016 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/knowledge_base/list_knowledge_bases "HTTP/1.1 200 OK"
+2026-09-15 15:32:45,006 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/knowledge_base/list_knowledge_bases "HTTP/1.1 200 OK"
+2026-09-15 15:32:53,052 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/knowledge_base/list_knowledge_bases "HTTP/1.1 200 OK"
+2026-09-15 15:32:53,177 httpx        781053 INFO     HTTP Request: POST http://10.10.12.248:7861/knowledge_base/local_kb/samples/chat/completions "HTTP/1.1 200 OK"
+2026-09-15 15:33:31,844 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 15:33:31,987 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 15:33:34,582 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 15:33:55,675 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 15:33:55,699 httpx        781053 INFO     HTTP Request: POST http://127.0.0.1:7861/chat/chat/completions "HTTP/1.1 200 OK"
+2026-09-15 16:00:12,962 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 16:00:16,117 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 16:00:18,202 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 16:00:20,309 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 16:00:21,324 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 16:00:22,371 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 16:00:38,401 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 16:00:38,444 httpx        781053 INFO     HTTP Request: POST http://127.0.0.1:7861/chat/chat/completions "HTTP/1.1 200 OK"
+2026-09-15 16:01:04,189 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 16:01:04,234 httpx        781053 INFO     HTTP Request: POST http://127.0.0.1:7861/chat/chat/completions "HTTP/1.1 200 OK"
+2026-09-15 16:01:42,187 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 16:01:48,914 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 16:01:48,954 httpx        781053 INFO     HTTP Request: POST http://127.0.0.1:7861/chat/chat/completions "HTTP/1.1 200 OK"
+2026-09-15 16:03:56,481 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 16:03:56,516 httpx        781053 INFO     HTTP Request: POST http://127.0.0.1:7861/chat/chat/completions "HTTP/1.1 200 OK"
+2026-09-15 16:16:10,109 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 16:16:12,522 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 21:50:15,175 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 21:53:01,673 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 21:53:08,217 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 21:53:11,232 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 21:53:53,055 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 21:53:59,926 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13201' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:53:59,928 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13202' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:53:59,929 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13203' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:53:59,929 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13204' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:53:59,930 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13205' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:53:59,930 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13206' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:53:59,930 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13207' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:53:59,931 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13208' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:53:59,931 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13209' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:53:59,931 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13210' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:53:59,932 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13211' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:53:59,932 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13212' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:53:59,932 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13213' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:53:59,933 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13214' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:53:59,933 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13215' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:53:59,933 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13216' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:53:59,934 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13217' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:53:59,934 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13218' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:53:59,934 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13219' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:53:59,935 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13220' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:53:59,935 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13221' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:53:59,935 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13222' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:53:59,936 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13223' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:53:59,936 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13224' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:53:59,936 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13225' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:53:59,937 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13226' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:53:59,937 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13227' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:53:59,937 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13228' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:53:59,938 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13229' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:53:59,938 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13230' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:53:59,938 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13231' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:53:59,939 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13232' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:53:59,939 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13233' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:53:59,939 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13234' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:53:59,940 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13235' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:53:59,940 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13236' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:53:59,940 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13237' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:54:34,652 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 21:55:08,145 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 21:55:14,720 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13383' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:55:14,721 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13384' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:55:14,722 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13385' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:55:14,722 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13386' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:55:14,722 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13387' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:55:14,723 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13388' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:55:14,723 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13389' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:55:14,723 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13390' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:55:14,724 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13391' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:55:14,724 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13392' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:55:14,724 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13393' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:55:14,725 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13394' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:55:14,725 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13395' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:55:14,725 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13396' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:55:14,726 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13397' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:55:14,726 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13398' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:55:14,726 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13399' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:55:14,727 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13400' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:55:14,727 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13401' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:55:14,727 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13402' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:55:14,727 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13403' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:55:14,728 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13406' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:55:14,728 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13407' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:55:14,728 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13408' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:55:14,729 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13409' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:55:14,729 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13410' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:55:14,729 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13411' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:55:14,730 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13412' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:55:14,730 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13413' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:55:14,730 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13414' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:55:14,731 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13415' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:55:14,731 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13416' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:55:14,731 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13417' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:55:14,732 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13418' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:55:14,732 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13419' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:55:14,732 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13420' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:55:14,732 asyncio      781053 ERROR    Task exception was never retrieved
+future: <Task finished name='Task-13421' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at /home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/lab239/anaconda3/envs/Langchain-Chatchat/lib/python3.10/site-packages/tornado/websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2026-09-15 21:55:32,954 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 21:55:38,914 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 21:55:42,748 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 21:55:52,534 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 21:55:59,437 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 21:56:06,604 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 21:58:36,622 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 21:58:40,541 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 21:58:48,292 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 22:04:31,726 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 22:04:40,291 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 22:04:48,222 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 22:05:04,005 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 22:05:06,719 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 22:05:08,942 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 22:05:23,773 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 22:05:31,350 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 22:07:51,815 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-15 22:07:55,492 httpx        781053 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"

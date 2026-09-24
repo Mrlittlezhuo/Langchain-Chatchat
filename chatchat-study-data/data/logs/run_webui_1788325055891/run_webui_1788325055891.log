@@ -1,0 +1,8 @@
+2026-09-02 12:58:46,288 httpx        2789929 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-02 12:59:29,203 httpx        2789929 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-02 12:59:41,271 httpx        2789929 INFO     HTTP Request: GET http://127.0.0.1:7861/knowledge_base/list_knowledge_bases "HTTP/1.1 200 OK"
+2026-09-02 12:59:41,444 httpx        2789929 INFO     HTTP Request: GET http://127.0.0.1:7861/knowledge_base/list_knowledge_bases "HTTP/1.1 200 OK"
+2026-09-02 12:59:55,036 httpx        2789929 INFO     HTTP Request: GET http://127.0.0.1:7861/tools "HTTP/1.1 200 OK"
+2026-09-02 12:59:57,223 httpx        2789929 INFO     HTTP Request: GET http://127.0.0.1:7861/knowledge_base/list_knowledge_bases "HTTP/1.1 200 OK"
+2026-09-02 12:59:57,349 httpx        2789929 INFO     HTTP Request: GET http://127.0.0.1:7861/knowledge_base/list_knowledge_bases "HTTP/1.1 200 OK"
+2026-09-02 13:04:20,330 httpx        2789929 INFO     HTTP Request: GET http://127.0.0.1:7861/knowledge_base/list_knowledge_bases "HTTP/1.1 200 OK"
