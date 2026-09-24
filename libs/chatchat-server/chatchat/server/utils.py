@@ -933,8 +933,8 @@ def get_temp_dir(id: str = None) -> Tuple[str, str]:
 
 
 # 动态更新知识库信息
+import re
 def update_search_local_knowledgebase_tool():
-    import re
 
     from chatchat.server.agent.tools_factory import tools_registry
     from chatchat.server.db.repository.knowledge_base_repository import list_kbs_from_db

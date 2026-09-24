@@ -146,6 +146,7 @@ async def chat(
     """Agent 对话"""
 
     async def chat_iterator_event() -> AsyncIterable[OpenAIChatOutput]:
+        current_message_id = message_id
         try:
             callbacks = []
 
@@ -178,11 +179,15 @@ async def chat(
                 metadata=metadata,
                 use_mcp = use_mcp
             )
-            message_id = add_message_to_db(
-                    chat_type="llm_chat",
-                    query=query,
-                    conversation_id=conversation_id,
-            )
+            # The OpenAI-compatible route has already created this message.
+            # Reuse it so one user turn is stored only once.  Direct callers of
+            # chat() still get a new message when no message_id was supplied.
+            if current_message_id is None:
+                current_message_id = add_message_to_db(
+                        chat_type="llm_chat",
+                        query=query,
+                        conversation_id=conversation_id,
+                )
             chat_iterator = full_chain.invoke({
                 "input": query
             })
@@ -269,7 +274,7 @@ async def chat(
                     model=models["llm_model"].model_name,
                     status=data["status"],
                     message_type=data["message_type"],
-                    message_id=message_id,
+                    message_id=current_message_id,
                     class_name=item.class_name()
                 )
                 yield ret.model_dump_json()
@@ -277,7 +282,7 @@ async def chat(
             string_intermediate_steps = dumps(agent_executor.intermediate_steps, pretty=True)
 
             update_message(
-                message_id, 
+                current_message_id,
                 agent_executor.history[-1].get("content"),
                 metadata = {
                     "intermediate_steps": string_intermediate_steps

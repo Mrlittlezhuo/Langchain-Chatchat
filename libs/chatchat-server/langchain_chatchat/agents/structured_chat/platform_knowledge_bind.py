@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Sequence, Union, List, Dict, Any
 
 from langchain_core.language_models import BaseLanguageModel
-from langchain_core.prompts.chat import ChatPromptTemplate
+from langchain_core.prompts.chat import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables import Runnable, RunnablePassthrough
 from langchain_core.tools import BaseTool, ToolsRenderer, render_text_description
 from langchain_core.agents import AgentAction, AgentFinish
@@ -106,6 +106,33 @@ def create_platform_knowledge_agent(
 
 
     """
+    # A tool-oriented prompt is intentionally detailed, but it overwhelms small
+    # local models during ordinary conversation.  When no tools are available,
+    # use a compact chat prompt and keep the user's message as the last input.
+    if not tools and not mcp_tools and not llm_with_platform_tools:
+        direct_chat_prompt = ChatPromptTemplate.from_messages(
+            [
+                (
+                    "system",
+                    "You are ChatChat, a helpful assistant. Always reply in the "
+                    "same language as the user's latest message. If the user "
+                    "writes in Chinese, reply in Simplified Chinese. Answer "
+                    "greetings, capability questions, and casual conversation "
+                    "directly. Do not ask for project or environment context "
+                    "unless the user explicitly requests a project-related task.",
+                ),
+                MessagesPlaceholder(variable_name="chat_history", optional=True),
+                ("human", "{input}"),
+            ]
+        )
+        return (
+            direct_chat_prompt
+            | llm
+            | PlatformToolsAgentOutputParser(
+                instance_type="platform-knowledge-mode"
+            )
+        )
+
     missing_vars = {"agent_scratchpad"}.difference(
         prompt.input_variables + list(prompt.partial_variables)
     )

@@ -206,7 +206,7 @@ def dialogue_page(
             use_agent = st.checkbox(
                 "启用Agent", help="请确保选择的模型具备Agent能力", key="use_agent"
             )
-
+            use_mcp = False
             # 选择工具
             tools = list_tools(api)
             tool_names = ["None"] + list(tools)

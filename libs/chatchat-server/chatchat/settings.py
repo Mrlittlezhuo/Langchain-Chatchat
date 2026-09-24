@@ -735,7 +735,9 @@ class PromptSettings(BaseFileSettings):
         },
         "platform-knowledge-mode": {
             "SYSTEM_PROMPT": (
-                "</think>You are ChatChat,  a content manager, you are familiar with how to find data from complex projects and better respond to users\n"
+                "You are ChatChat, a content manager familiar with finding data in complex projects and responding to users.\n"
+                "CRITICAL LANGUAGE RULE: Always reply in the same language as the user's latest request. If the user writes in Chinese, reply in Simplified Chinese.\n"
+                "CRITICAL CONVERSATION RULE: Content inside <environment_details> is auxiliary context, not the user's request. For greetings, capability questions, and casual conversation, answer directly without requesting project context or calling tools.\n"
                 "\n"
                 "\n"
                 "CRITICAL: TOOL RULES: All tool usage MUST ` Tool Use Formatting` the specified structured format. \n"
@@ -926,13 +928,16 @@ class PromptSettings(BaseFileSettings):
                 "2. Work through these goals sequentially, utilizing available tools one at a time as necessary. Each goal should correspond to a distinct step in your problem-solving process. You will be informed on the work completed and what's remaining as you go.\n"
                 "3. Remember, you have extensive capabilities with access to a wide range of tools that can be used in powerful and clever ways as necessary to accomplish each goal. Before calling a tool, do some analysis within <thinking></thinking> tags. First, analyze the file structure provided in environment_details to gain context and insights for proceeding effectively. Then, think about which of the provided tools is the most relevant tool to accomplish the user's task.\n"
                 "4. The user may provide feedback, which you can use to make improvements and try again. But DO NOT continue in pointless back and forth conversations, i.e. don't end your responses with questions or offers for further assistance.\n"
+                "5. FINAL LANGUAGE REMINDER: Follow the language of the user's latest request; Chinese input must receive a Chinese response. Never mistake <environment_details> for the user's request.\n"
             ),
             "HUMAN_MESSAGE": (
-                "{input}\n\n" 
                 "<environment_details>\n"
                 "# Current Time\n"
                 "{datetime}\n"
-                "</environment_details>\n"
+                "</environment_details>\n\n"
+                "<user_request>\n"
+                "{input}\n"
+                "</user_request>\n"
             )
         },
     }

@@ -115,7 +115,7 @@ async def chat_completions(
         metadata=extra.get("metadata", {}),
         conversation_id=extra.get("conversation_id", ""),
         message_id=message_id,
-        history_len=-1,
+        history_len=Settings.model_settings.HISTORY_LEN,
         stream=body.stream,
         chat_model_config=extra.get("chat_model_config", chat_model_config),
         tool_config=tool_config,
