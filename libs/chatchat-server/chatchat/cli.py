@@ -6,6 +6,7 @@ import typing as t
 from chatchat.startup import main as startup_main
 from chatchat.init_database import main as kb_main, create_tables, folder2db
 from chatchat.settings import Settings
+from chatchat.server.db.migrate.cli import migrate as db_migrate
 from chatchat.utils import build_logger
 from chatchat.server.utils import get_default_embedding
 
@@ -78,6 +79,7 @@ def init(
 
 main.add_command(startup_main, "start")
 main.add_command(kb_main, "kb")
+main.add_command(db_migrate, "migrate")
 
 
 if __name__ == "__main__":
