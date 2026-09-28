@@ -8,7 +8,7 @@
 
 ## 1. 指令优先级
 
-本文件是项目协作约定，不覆盖更高优先级的系统指令、用户当前请求、仓库 `AGENTS.md` 或安全规则。
+本文件是项目协作约定，不覆盖更高优先级的系统指令、用户当前请求、仓库根目录 `AGENTS.md` 或安全规则。仓库级 `AGENTS.md` 已纳入版本控制，换电脑后也必须先读取。
 
 新的 Codex 会话读取本文件后，应把它作为本项目的默认协作方式：
 
@@ -80,8 +80,14 @@ Codex 在生成任务前执行只读检查：
 
 ```powershell
 git status --short --branch
+git rev-parse HEAD
 git log -5 --oneline --decorate
 git remote -v
+git diff HEAD --stat
+git diff --cached --stat
+git ls-files --others --exclude-standard
+git stash list
+git submodule status
 ```
 
 并记录：
@@ -90,6 +96,7 @@ git remote -v
 - 基线 commit；
 - 已有未提交文件；
 - 哪些改动属于用户或前一个任务；
+- staged、unstaged、untracked、stash 和 submodule 是否存在遗留状态；
 - 是否存在未完成的 Claude 任务；
 - 相关测试入口。
 
@@ -121,6 +128,17 @@ git remote -v
 
 不要把整个大型功能一次性塞入一个任务。
 
+任务文档是持久化交接物，必须遵守：
+
+1. Codex 记录目标分支和完整源码基线 commit；
+2. Codex 明确源码基线后允许出现的规则/任务文档提交；
+3. Codex 将 `ready_for_claude` 的任务文档提交并推送后再交给用户；
+4. Claude 开始前核对分支、工作区、源码基线后的文件和 stash；
+5. Claude 将执行结果写回同一任务文档的固定报告区；
+6. Codex 将最终审查记录与代码一起提交。
+
+源码基线表示实现前的业务代码版本，不要求 `HEAD` 与它完全相等，因为任务文档提交会位于该基线之上。Claude 必须确认基线后的提交只修改了任务声明允许的规则或任务文档；如果混入业务代码则停止。
+
 ### 阶段 2：用户人工调用 Claude Code
 
 用户在项目根目录启动 Claude Code。
@@ -130,10 +148,15 @@ Windows 示例：
 ```powershell
 cd <仓库路径>\Langchain-Chatchat
 git status --short --branch
+git rev-parse HEAD
+git diff --name-status <源码基线commit>..HEAD
+git stash list
 claude.cmd
 ```
 
 如果 `claude` 被 PowerShell 执行策略阻止，应使用 `claude.cmd`，不要为了运行 Claude 而修改整个系统的 PowerShell 执行策略。
+
+启动 Claude 前必须满足：当前分支与任务一致、工作区干净、基线之后只有任务声明允许的文档提交、没有来源不明的 stash。任何一项不满足都先停止并交给 Codex 判断。
 
 用户向 Claude Code 提供：
 
@@ -161,7 +184,7 @@ Claude Code 执行期间：
 - 不把“进程仍在运行”当作失败；
 - 如果 Claude 请求扩大范围，先暂停并由用户交给 Codex重新评估。
 
-Claude 完成后，用户保留其最终报告，并通知 Codex开始审查。
+Claude 完成后，应把修改文件、设计选择、测试结果、未完成项和风险追加到任务文档的“Claude 执行报告”，将状态改为 `ready_for_codex_review`。用户随后通知 Codex 开始审查。聊天窗口中的总结可以同时保留，但不能作为唯一记录。
 
 ### 阶段 4：Codex 审查
 
@@ -169,14 +192,18 @@ Codex 首先检查：
 
 ```powershell
 git status --short --branch
-git diff --stat
+git diff HEAD --stat
+git diff HEAD
+git diff --cached
 git diff
 git ls-files --others --exclude-standard
+git stash list
+git submodule status
 ```
 
 然后按本文件第 7 节进行完整审查。
 
-Codex 不只阅读 Claude 的总结；必须直接检查代码 diff 和实际文件。
+`git diff HEAD` 用于覆盖全部 tracked 改动，`git diff --cached` 和 `git diff` 分别用于确认 staged/unstaged 边界。Codex 不只阅读 Claude 的总结；必须直接检查代码 diff、未跟踪文件内容和任务报告。stash 中若有内容，必须先查明归属，不能直接 drop 或假设与任务无关。
 
 ### 阶段 5：问题处理
 
@@ -215,71 +242,20 @@ Claude Code 不执行这一阶段的 Git 操作。
 
 ## 4. Claude 任务文档模板
 
-Codex 生成的每份任务应包含以下内容。
+仓库中的权威模板是 [`项目优化/Claude任务/000-任务模板.md`](./Claude任务/000-任务模板.md)。Codex 应复制该文件创建任务，不能另写一个结构不一致的临时提示词。
 
-```markdown
-# 任务 NNN：任务名称
+每份任务至少包含：
 
-## 1. 状态
+1. 状态、负责人、目标分支和完整源码基线 commit；
+2. Claude 执行前命令和明确停止条件；
+3. 背景、目标、允许修改范围和禁止事项；
+4. 数据库、API、安全、兼容性等设计约束；
+5. 可离线重复的测试要求；
+6. 客观验收标准；
+7. Claude 只能追加的执行报告区；
+8. Codex 审查记录区。
 
-- 状态：待 Claude 执行
-- 基线分支：master
-- 基线 commit：<commit>
-- 生成者：Codex
-- 实现者：Claude Code
-- 审查者：Codex
-
-## 2. 背景
-
-说明当前问题、用户影响和现有实现。
-
-## 3. 目标
-
-列出本任务完成后必须实现的用户行为。
-
-## 4. 允许修改范围
-
-- 允许修改的模块和文件
-- 可以新增的文件
-
-## 5. 禁止事项
-
-- 不允许修改的模块
-- 不允许执行的命令
-- 不允许读取的数据
-- 不允许扩大到的功能
-
-## 6. 设计约束
-
-描述数据库、API、安全、兼容性和用户体验要求。
-
-## 7. 实现任务
-
-1. 具体任务一
-2. 具体任务二
-3. 具体任务三
-
-## 8. 测试要求
-
-- 必须新增或修改的测试
-- 必须执行的测试命令
-- 不允许依赖的外部服务
-
-## 9. 验收标准
-
-- 可以客观验证的完成条件
-
-## 10. 完成报告格式
-
-请报告：
-1. 修改文件
-2. 关键设计选择
-3. 测试命令和结果
-4. 未完成项
-5. 风险和已知限制
-
-不要执行 git commit 或 git push。
-```
+禁止只在聊天中发送一次性任务要求而不落盘。任务指令和报告都必须保存在仓库任务文档中。
 
 ## 5. 给 Claude Code 的固定开场指令
 
@@ -288,9 +264,11 @@ Codex 生成的每份任务应包含以下内容。
 ```text
 请完整阅读我提供的任务文档，并在当前 Langchain-Chatchat 仓库中执行。
 
-严格遵守允许范围和禁止事项。不要读取任务排除的数据，不要安装未授权依赖，不要执行 git commit、git push、git reset 或 git checkout，不要覆盖已有无关改动。
+先执行任务文档中的基线检查。若分支不符、工作区已有不明改动、源码基线后混入未声明业务代码、stash 不符合预期或文件发生冲突，请立即停止并报告，不要自行清理。
 
-先检查相关源码，再实施和运行定向测试。完成后按任务文档要求报告修改文件、设计选择、测试结果、未完成项和风险。
+严格遵守允许范围和禁止事项。不要读取任务排除的数据，不要安装未授权依赖，不要执行 git commit、git push、git reset、git checkout、git clean 或 git stash，不要覆盖已有无关改动。
+
+检查相关源码后再实施和运行定向测试。完成后把状态改为 ready_for_codex_review，并在任务文档的“Claude 执行报告”中写入修改文件、设计选择、实际测试命令与结果、未完成项和风险。
 ```
 
 ## 6. 用户通知 Codex 的建议格式
@@ -300,8 +278,8 @@ Claude 完成后，用户可以发送：
 ```text
 Claude Code 已执行完成，请按照协作工作流审查当前工作区。
 
-Claude 的测试结果：<粘贴结果>
-Claude 声称的未完成项：<粘贴内容>
+任务文档：项目优化/Claude任务/<任务文件>.md
+Claude 的聊天总结：<可选粘贴；任务文档中的执行报告为持久化记录>
 ```
 
 如果 Claude 中途失败，也应通知 Codex，不要先删除其修改：
@@ -412,17 +390,33 @@ Codex 向用户报告时使用以下结构：
 | 状态 | 负责人 | 含义 |
 |---|---|---|
 | `draft` | Codex | 正在分析和编写任务 |
-| `ready_for_claude` | 用户 | 任务文档已准备，可交给 Claude |
-| `claude_running` | Claude Code | 用户已启动本地实现 |
-| `ready_for_codex_review` | Codex | Claude 已结束，等待审查 |
-| `changes_requested` | Codex/Claude | 审查发现需要修正 |
+| `ready_for_claude` | Codex | 任务文档已提交推送，可交给 Claude |
+| `claude_running` | 用户 | 用户已启动本地实现；可只作为运行态通知 |
+| `ready_for_codex_review` | Claude Code | Claude 已填写执行报告，等待审查 |
+| `changes_requested` | Codex | 审查发现需要修正 |
 | `validated` | Codex | 代码和测试已通过 |
-| `committed` | Codex | 已提交本任务文件 |
-| `pushed` | Codex | 已推送远端，任务完成 |
+| `completed` | Codex | 审查记录完成，可与最终代码一起提交 |
 
-任务文档顶部应更新当前状态，防止换电脑后不知道工作停在哪一步。
+任务文档顶部应更新当前状态。`ready_for_claude` 必须持久化到远端；Claude 的 `ready_for_codex_review` 与源码改动一起等待审查；`completed` 与最终代码一起提交。提交和推送结果通过 Git 历史、分支跟踪状态及 Codex 最终报告判断，不在文档中维护会造成自引用的 commit 哈希。
 
 ## 10. 换电脑或新 Codex 会话的恢复步骤
+
+### 10.1 获取最新仓库
+
+新电脑优先从远端重新克隆仓库。已有仓库先确认工作区干净，再直连同步；没有用户当前授权时不得自行启用代理。
+
+```powershell
+git fetch --all --prune
+git status --short --branch
+git rev-parse HEAD
+git rev-parse '@{upstream}'
+git stash list
+git submodule status
+```
+
+只有工作区干净且本地只是落后远端时，才可以执行 `git pull --ff-only`。本地有提交、改动、stash、分叉或 submodule 异常时先停止分析，不能强制覆盖。
+
+### 10.2 恢复工作上下文
 
 新的 Codex 在开始工作前应按顺序执行：
 
@@ -434,8 +428,14 @@ Codex 向用户报告时使用以下结构：
 
 ```powershell
 git status --short --branch
+git rev-parse HEAD
 git log -5 --oneline --decorate
 git remote -v
+git diff HEAD --stat
+git diff --cached --stat
+git ls-files --others --exclude-standard
+git stash list
+git submodule status
 ```
 
 6. 如果工作区干净，从最近任务状态继续；
@@ -445,6 +445,22 @@ git remote -v
 10. 如果 Claude 尚未执行，检查并完善任务文档后交还用户；
 11. 如果 Claude 执行中断，保留现场并审查部分改动，不得直接 reset；
 12. 只有验证完成后才提交和推送。
+
+### 10.3 跨电脑转移未审查代码
+
+最安全的方式是在 Claude 所在电脑上完成 Codex 审查和正式提交后再换电脑。未提交工作区、untracked 文件和 stash 都是本机状态，不会随 `git clone`、`fetch` 或 `pull` 转移。
+
+如果必须在审查前换电脑：
+
+1. 用户明确授权创建临时交接分支；
+2. Codex 先检查改动中没有密钥、数据库、日志、用户数据和无关文件；
+3. Codex 创建 `handoff/<任务编号>-<日期>` 分支；
+4. 以 `wip(handoff): <任务编号> unreviewed changes` 提交并推送；
+5. 明确标记该提交“未审查、不得合入 master”；
+6. 新电脑检出交接分支后，由 Codex 从完整审查流程继续；
+7. 审查通过后用正常任务提交交付，并删除临时远端分支。
+
+临时交接分支只是传输容器，不代表验收通过。不得使用 stash 作为跨电脑传输方案，也不得把未审查代码直接推到 `master`。
 
 ## 11. 冲突和异常处理
 
@@ -467,6 +483,12 @@ Codex 不直接全盘接受。先分类：
 - 是否可以安全运行测试；
 - 是否适合由 Codex 补完；
 - 是否需要新建一个更小的 Claude 任务。
+
+### 改动被误放入 stash
+
+先执行 `git stash list` 和 `git stash show --name-status --include-untracked 'stash@{N}'`，确认每个文件的归属。需要恢复部分文件时，按明确路径从 stash source 恢复，不要直接 pop 整个 stash。只有目标文件已恢复并验证、其余内容确认不需要后，才允许 drop 对应 stash。
+
+drop 前记录 stash 名称和对象哈希。stash 只存在于当前仓库本机；drop 后通常不能再通过 `git stash` 恢复，底层对象也可能被 Git 垃圾回收。
 
 ### 测试无法运行
 
