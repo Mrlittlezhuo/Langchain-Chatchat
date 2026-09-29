@@ -2,16 +2,24 @@ from __future__ import annotations
 
 from typing import Dict, List
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from sqlalchemy.orm import Session
 from langchain.prompts.prompt import PromptTemplate
 from sse_starlette import EventSourceResponse
 
 from chatchat.server.api_server.api_schemas import OpenAIChatInput
+from chatchat.server.auth.deps import require_password_changed
 from chatchat.server.chat.chat import chat
 from chatchat.server.chat.kb_chat import kb_chat
 from chatchat.server.chat.feedback import chat_feedback
 from chatchat.server.chat.file_chat import file_chat
-from chatchat.server.db.repository import add_message_to_db
+from chatchat.server.db.models.user_model import UserModel
+from chatchat.server.db.session import get_db
+from chatchat.server.db.repository import (
+    add_message,
+    create_conversation,
+    get_owned_conversation,
+)
 from chatchat.server.utils import (
     get_OpenAIClient,
     get_prompt_template,
@@ -46,27 +54,19 @@ chat_router.post("/file_chat", summary="文件对话")(file_chat)
 async def chat_completions(
     request: Request,
     body: OpenAIChatInput,
+    user: UserModel = Depends(require_password_changed),
+    session: Session = Depends(get_db),
 ) -> Dict:
-    """
-    请求参数与 openai.chat.completions.create 一致，可以通过 extra_body 传入额外参数
-    tools 和 tool_choice 可以直接传工具名称，会根据项目里包含的 tools 进行转换
-    通过不同的参数组合调用不同的 chat 功能：
-    - tool_choice
-        - extra_body 中包含 tool_input: 直接调用 tool_choice(tool_input)
-        - extra_body 中不包含 tool_input: 通过 agent 调用 tool_choice
-    - tools: agent 对话
-    - 其它：LLM 对话
-    以后还要考虑其它的组合（如文件对话）
-    返回与 openai 兼容的 Dict
-    """
-    # import rich
-    # rich.print(body)
+    """Agent 对话
 
+    要求登录。带 conversation_id 时先验证它属于当前用户（不满足在模型
+    调用前返回 404）；缺失时为当前用户创建默认会话，并在响应中保留会话
+    ID。
+    """
     # 当调用本接口且 body 中没有传入 "max_tokens" 参数时, 默认使用配置中定义的值
     if body.max_tokens in [None, 0]:
         body.max_tokens = Settings.model_settings.MAX_TOKENS
 
-    client = get_OpenAIClient(model_name=body.model, is_async=True)
     extra = {**body.model_extra} or {}
     for key in list(extra):
         delattr(body, key)
@@ -88,21 +88,32 @@ async def chat_completions(
                         },
                     }
 
+    # 先验证/创建当前用户的会话，必须在任何模型调用之前完成
     conversation_id = extra.get("conversation_id")
-  
-    try:
-        message_id = (
-            add_message_to_db(
-                chat_type="agent_chat",
-                query=body.messages[-1]["content"],
-                conversation_id=conversation_id,
+    if conversation_id:
+        if get_owned_conversation(session, conversation_id, user.id) is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="会话不存在或无权访问",
             )
-            if conversation_id
-            else None
+    else:
+        # 为当前用户创建默认会话；响应中保留会话 ID 供客户端取得
+        conversation_id = create_conversation(
+            session,
+            owner_id=user.id,
+            chat_type="agent_chat",
+            name=(body.messages[-1]["content"] or "")[:50],
         )
-    except Exception as e:
-        logger.warning(f"failed to add message to db: {e}")
-        message_id = None
+
+    client = get_OpenAIClient(model_name=body.model, is_async=True)
+
+    message_id = add_message(
+        session=session,
+        conversation_id=conversation_id,
+        owner_id=user.id,
+        chat_type="agent_chat",
+        query=body.messages[-1]["content"],
+    )
 
     chat_model_config = {}  # TODO: 前端支持配置模型
     tool_config = {}
@@ -113,7 +124,7 @@ async def chat_completions(
     result = await chat(
         query=body.messages[-1]["content"],
         metadata=extra.get("metadata", {}),
-        conversation_id=extra.get("conversation_id", ""),
+        conversation_id=conversation_id,
         message_id=message_id,
         history_len=Settings.model_settings.HISTORY_LEN,
         stream=body.stream,
@@ -121,5 +132,10 @@ async def chat_completions(
         tool_config=tool_config,
         use_mcp=extra.get("use_mcp", False),
         max_tokens=body.max_tokens,
+        session=session,
+        owner_id=user.id,
     )
+    # 保留可供客户端取得的会话 ID
+    if isinstance(result, dict):
+        result["conversation_id"] = conversation_id
     return result

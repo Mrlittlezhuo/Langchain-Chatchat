@@ -4,6 +4,7 @@ import uuid
 import os
 from chatchat.server.db.repository.message_repository import filter_message
 from typing import AsyncIterable, List, Union, Tuple
+from sqlalchemy.orm import Session
 from langchain_core.load import dumpd, dumps, load, loads
 
 from fastapi import Body
@@ -23,7 +24,7 @@ from langchain_chatchat.callbacks.agent_callback_handler import (
 from langchain_chatchat.agents.platform_tools import PlatformToolsAction, PlatformToolsFinish, \
     PlatformToolsActionToolStart, PlatformToolsActionToolEnd, PlatformToolsLLMStatus
 from chatchat.server.chat.utils import History
-from chatchat.server.db.repository import add_message_to_db, update_message
+from chatchat.server.db.repository import add_message, update_message
 
 from langchain_chatchat import ChatPlatformAI, PlatformToolsRunnable
 from chatchat.server.utils import (
@@ -74,12 +75,17 @@ def create_models_from_config(configs, callbacks, stream, max_tokens):
 
 
 def create_models_chains(
-    history_len, prompts, models, tools, callbacks, conversation_id, metadata,  use_mcp: bool = False
+    history_len, prompts, models, tools, callbacks, conversation_id,
+    session, owner_id, metadata, use_mcp: bool = False
 ):
 
     # 从数据库获取conversation_id对应的 intermediate_steps 、 mcp_connections
+    # （仅当会话属于 owner_id 时返回历史）
     messages = filter_message(
-        conversation_id=conversation_id, limit=history_len
+        session=session,
+        conversation_id=conversation_id,
+        owner_id=owner_id,
+        limit=history_len,
     )
     # 返回的记录按时间倒序，转为正序
     messages = list(reversed(messages))
@@ -142,8 +148,14 @@ async def chat(
         tool_config: dict = Body({}, description="工具配置", examples=[]),
         use_mcp: bool = Body(False, description="使用MCP"),
         max_tokens: int = Body(None, description="LLM最大token数配置", example=4096),
+        session: Session = None,
+        owner_id: str = None,
 ):
-    """Agent 对话"""
+    """Agent 对话
+
+    ``session`` / ``owner_id`` 由受保护的路由注入（已验证当前用户），
+    聊天内所有读写都限定在 owner 自己的会话中。
+    """
 
     async def chat_iterator_event() -> AsyncIterable[OpenAIChatOutput]:
         current_message_id = message_id
@@ -176,6 +188,8 @@ async def chat(
                 tools=tools,
                 callbacks=callbacks,
                 history_len=history_len,
+                session=session,
+                owner_id=owner_id,
                 metadata=metadata,
                 use_mcp = use_mcp
             )
@@ -183,7 +197,9 @@ async def chat(
             # Reuse it so one user turn is stored only once.  Direct callers of
             # chat() still get a new message when no message_id was supplied.
             if current_message_id is None:
-                current_message_id = add_message_to_db(
+                current_message_id = add_message(
+                        session=session,
+                        owner_id=owner_id,
                         chat_type="llm_chat",
                         query=query,
                         conversation_id=conversation_id,
@@ -282,8 +298,10 @@ async def chat(
             string_intermediate_steps = dumps(agent_executor.intermediate_steps, pretty=True)
 
             update_message(
-                current_message_id,
-                agent_executor.history[-1].get("content"),
+                session=session,
+                message_id=current_message_id,
+                owner_id=owner_id,
+                response=agent_executor.history[-1].get("content"),
                 metadata = {
                     "intermediate_steps": string_intermediate_steps
                 }

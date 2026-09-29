@@ -105,9 +105,11 @@ def _failing_registry(fail_version: int) -> MigrationRegistry:
 
 def test_builtin_registry_order_and_latest():
     registry = build_registry()
-    assert [m.version for m in registry.migrations] == [1, 2]
-    assert [m.name for m in registry.migrations] == ["baseline", "user_account"]
-    assert registry.latest_version == 2
+    assert [m.version for m in registry.migrations] == [1, 2, 3]
+    assert [m.name for m in registry.migrations] == [
+        "baseline", "user_account", "conversation_owner",
+    ]
+    assert registry.latest_version == 3
 
 
 def test_registry_rejects_duplicate_version():
@@ -149,13 +151,17 @@ def test_first_upgrade_on_empty_file_db(temp_db_file):
     with engine.connect() as conn:
         assert current_version(conn) is None
         result = apply_migrations(registry, conn)
-        assert [m.version for m in result.applied] == [1, 2]
-        assert result.final_version == 2
+        assert [m.version for m in result.applied] == [1, 2, 3]
+        assert result.final_version == 3
     with engine.connect() as conn:
         rows = conn.execute(
             text("SELECT version, name FROM schema_migrations")
         ).fetchall()
-        assert [(r[0], r[1]) for r in rows] == [(1, "baseline"), (2, "user_account")]
+        assert [(r[0], r[1]) for r in rows] == [
+            (1, "baseline"), (2, "user_account"), (3, "conversation_owner"),
+        ]
+        # 空库尚无业务表 conversation，v3 跳过 ALTER（由 create_all 建带新字段表）
+        assert not inspect(conn).has_table("conversation")
     engine.dispose()
 
 
@@ -172,14 +178,14 @@ def test_double_upgrade_is_idempotent(temp_db_file):
     engine = _file_engine(temp_db_file)
     with engine.connect() as conn:
         first = apply_migrations(registry, conn)
-        assert [m.version for m in first.applied] == [1, 2]
+        assert [m.version for m in first.applied] == [1, 2, 3]
         second = apply_migrations(registry, conn)
         assert second.applied == []
-        assert second.final_version == 2
+        assert second.final_version == 3
     with engine.connect() as conn:
         assert conn.execute(
             text("SELECT COUNT(*) FROM schema_migrations")
-        ).scalar() == 2
+        ).scalar() == 3
     engine.dispose()
 
 
@@ -206,8 +212,8 @@ def test_in_memory_db_upgrades_without_backup(tmp_path):
     assert sqlite_db_file(engine) is None
     with engine.connect() as conn:
         result = apply_migrations(registry, conn)
-        assert result.final_version == 2
-        assert current_version(conn) == 2
+        assert result.final_version == 3
+        assert current_version(conn) == 3
     engine.dispose()
 
 
@@ -449,7 +455,8 @@ def test_v2_creates_user_account_schema(temp_db_file):
     engine = _file_engine(temp_db_file)
     with engine.connect() as conn:
         result = apply_migrations(registry, conn)
-        assert [m.version for m in result.applied] == [1, 2]
+        # v1→v2→v3；v3 在空库无 conversation 表时跳过 ALTER
+        assert [m.version for m in result.applied] == [1, 2, 3]
         cols = {c["name"] for c in inspect(conn).get_columns("user_account")}
         expected = {
             "id", "username", "password_hash", "display_name",
@@ -487,12 +494,13 @@ def test_v2_only_runs_on_existing_v1_db(temp_db_file):
         conn.commit()
     with engine.connect() as conn:
         result = apply_migrations(registry, conn)
-        assert [m.version for m in result.applied] == [2]
-        assert result.final_version == 2
+        # 已有 v1：执行 v2、v3（v3 无 conversation 表，跳过 ALTER）
+        assert [m.version for m in result.applied] == [2, 3]
+        assert result.final_version == 3
         assert conn.execute(text("SELECT COUNT(*) FROM user_account")).scalar() == 0
         result2 = apply_migrations(registry, conn)
         assert result2.applied == []
-        assert result2.final_version == 2
+        assert result2.final_version == 3
     engine.dispose()
 
 
@@ -552,6 +560,125 @@ def test_v2_refuses_preexisting_incompatible_user_table(temp_db_file):
         assert [c["name"] for c in inspect(conn).get_columns("user_account")] == [
             "legacy_id"
         ]
+    engine.dispose()
+
+
+# ---------------------------------------------------------------------------
+# v3 conversation owner 迁移
+# ---------------------------------------------------------------------------
+
+
+def test_v3_upgrades_existing_v2_db_and_preserves_data(tmp_path):
+    """已有 v1、v2 记录且已有旧 conversation/message 表的库，仅执行 v3；
+    字段、联合索引新增，旧数据保留，重复执行安全。"""
+    db_path = tmp_path / "v3_upgrade.db"
+    engine = _file_engine(db_path)
+    # 模拟一个已迁移到 v2、且已有旧 conversation/message 业务表的库
+    with engine.connect() as conn:
+        conn.execute(text(
+            "CREATE TABLE schema_migrations ("
+            "version INTEGER PRIMARY KEY, name VARCHAR(255) NOT NULL, "
+            "applied_at TIMESTAMP NOT NULL)"
+        ))
+        conn.execute(text(
+            "CREATE TABLE user_account (id VARCHAR(32) PRIMARY KEY)"
+        ))
+        conn.execute(text(
+            "INSERT INTO schema_migrations (version, name, applied_at) VALUES "
+            "(1, 'baseline', CURRENT_TIMESTAMP), "
+            "(2, 'user_account', CURRENT_TIMESTAMP)"
+        ))
+        # 旧 conversation：无 owner_id/update_time，create_time 部分为空
+        conn.execute(text(
+            "CREATE TABLE conversation ("
+            "id VARCHAR(32) PRIMARY KEY, name VARCHAR(50), "
+            "chat_type VARCHAR(50), create_time TIMESTAMP)"
+        ))
+        conn.execute(text(
+            "INSERT INTO conversation (id, name, chat_type, create_time) VALUES "
+            "('old-a', '旧对话A', 'local', CURRENT_TIMESTAMP), "
+            "('old-b', '旧对话B', 'local', NULL)"
+        ))
+        conn.execute(text(
+            "CREATE TABLE message ("
+            "id VARCHAR(32) PRIMARY KEY, conversation_id VARCHAR(32))"
+        ))
+        conn.execute(text(
+            "INSERT INTO message (id, conversation_id) VALUES "
+            "('old-a-m', 'old-a'), ('old-b-m', 'old-b')"
+        ))
+        conn.commit()
+
+    with engine.connect() as conn:
+        before_conv = conn.execute(
+            text("SELECT id, name, chat_type FROM conversation ORDER BY id")
+        ).fetchall()
+        before_msg = conn.execute(
+            text("SELECT id, conversation_id FROM message ORDER BY id")
+        ).fetchall()
+
+    with engine.connect() as conn:
+        result = apply_migrations(build_registry(), conn)
+        assert [m.version for m in result.applied] == [3]
+        assert result.final_version == 3
+
+        cols = {c["name"] for c in inspect(conn).get_columns("conversation")}
+        assert {"owner_id", "update_time", "create_time", "id", "name", "chat_type"} <= cols
+        idx_names = {i["name"] for i in inspect(conn).get_indexes("conversation")}
+        assert "ix_conversation_owner_update_time" in idx_names
+
+    # 旧数据保留：内容不变，行数不变
+    with engine.connect() as conn:
+        after_conv = conn.execute(
+            text("SELECT id, name, chat_type FROM conversation ORDER BY id")
+        ).fetchall()
+        after_msg = conn.execute(
+            text("SELECT id, conversation_id FROM message ORDER BY id")
+        ).fetchall()
+        assert after_conv == before_conv
+        assert after_msg == before_msg
+        # 旧行 owner 保持 NULL
+        assert conn.execute(text(
+            "SELECT COUNT(*) FROM conversation WHERE owner_id IS NULL"
+        )).scalar() == 2
+        # update_time 回填：有 create_time 的用 create_time，NULL 的用当前时间
+        assert conn.execute(text(
+            "SELECT COUNT(*) FROM conversation WHERE update_time IS NULL"
+        )).scalar() == 0
+
+    # 重复升级：无待执行迁移，字段不重复新增
+    with engine.connect() as conn:
+        result2 = apply_migrations(build_registry(), conn)
+        assert result2.applied == []
+        assert result2.final_version == 3
+    engine.dispose()
+
+
+def test_v3_skips_when_conversation_table_missing(temp_db_file):
+    """只到 v1、v2 且尚无 conversation 业务表的空库，v3 跳过 ALTER。"""
+    engine = _file_engine(temp_db_file)
+    with engine.connect() as conn:
+        conn.execute(text(
+            "CREATE TABLE schema_migrations ("
+            "version INTEGER PRIMARY KEY, name VARCHAR(255) NOT NULL, "
+            "applied_at TIMESTAMP NOT NULL)"
+        ))
+        conn.execute(text(
+            "CREATE TABLE user_account (id VARCHAR(32) PRIMARY KEY)"
+        ))
+        conn.execute(text(
+            "INSERT INTO schema_migrations (version, name, applied_at) VALUES "
+            "(1, 'baseline', CURRENT_TIMESTAMP), "
+            "(2, 'user_account', CURRENT_TIMESTAMP)"
+        ))
+        conn.commit()
+
+    with engine.connect() as conn:
+        result = apply_migrations(build_registry(), conn)
+        assert [m.version for m in result.applied] == [3]
+        assert result.final_version == 3
+        # conversation 表未被创建（由 create_all 负责）
+        assert not inspect(conn).has_table("conversation")
     engine.dispose()
 
 
@@ -642,7 +769,7 @@ def test_sample_data_preserved_through_real_upgrade(tmp_path):
 
     with engine.connect() as conn:
         result = apply_migrations(build_registry(), conn)
-        assert result.final_version == 2
+        assert result.final_version == 3
 
     with engine.connect() as conn:
         after = set(inspect(conn).get_table_names())
@@ -650,12 +777,15 @@ def test_sample_data_preserved_through_real_upgrade(tmp_path):
     # 新增 user_account，原有表全部保留；知识库表未被改动
     assert "user_account" in after
     assert before <= after
-    assert versions == [1, 2]
+    assert versions == [1, 2, 3]
 
     with engine.connect() as conn:
         convs = conn.execute(text("SELECT id, name FROM conversation ORDER BY id")).fetchall()
+        conv_cols = [c["name"] for c in inspect(conn).get_columns("conversation")]
         msgs = conn.execute(text("SELECT id, conversation_id FROM message ORDER BY id")).fetchall()
         kbs = conn.execute(text("SELECT name FROM knowledge_base")).fetchall()
+    # v3 给既有 conversation 增加 owner_id/update_time，旧行内容不变
+    assert {"owner_id", "update_time"} <= set(conv_cols)
     assert [c[0] for c in convs] == ["conv-x", "conv-y", "conv-z"]
     assert [c[1] for c in convs] == [f"对话 {i}" for i in ("conv-x", "conv-y", "conv-z")]
     assert [m[0] for m in msgs] == ["conv-x-m", "conv-y-m", "conv-z-m"]
@@ -687,9 +817,10 @@ def test_cli_status_shows_pending_and_final(tmp_path, monkeypatch):
     runner_result, db_path = _cli(monkeypatch, tmp_path, "status")
     assert runner_result.exit_code == 0
     assert "当前数据库版本" in runner_result.output
-    assert "代码最新版本：2" in runner_result.output
+    assert "代码最新版本：3" in runner_result.output
     assert "v1" in runner_result.output
     assert "v2" in runner_result.output
+    assert "v3" in runner_result.output
     with sqlite3.connect(str(db_path)) as conn:
         tables = conn.execute(
             "SELECT name FROM sqlite_master WHERE type='table'"
@@ -700,7 +831,7 @@ def test_cli_status_shows_pending_and_final(tmp_path, monkeypatch):
     upgrade_result, _ = _cli(monkeypatch, tmp_path, "upgrade")
     assert upgrade_result.exit_code == 0
     assert "已执行迁移" in upgrade_result.output
-    assert "最终版本：2" in upgrade_result.output
+    assert "最终版本：3" in upgrade_result.output
     assert "备份" in upgrade_result.output
 
     status_result, _ = _cli(monkeypatch, tmp_path, "status")
@@ -730,7 +861,7 @@ def test_cli_upgrade_is_idempotent(tmp_path, monkeypatch):
     result, _ = _cli(monkeypatch, tmp_path, "upgrade")
     assert result.exit_code == 0
     assert "无待执行迁移" in result.output
-    assert "最终版本：2" in result.output
+    assert "最终版本：3" in result.output
     assert Path(db_path).is_file()
     backups = [p for p in db_path.parent.iterdir() if ".bak-" in p.name]
     # 第二次升级无待执行迁移，不触发新的备份
