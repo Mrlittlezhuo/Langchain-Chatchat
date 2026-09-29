@@ -16,6 +16,8 @@ from chatchat.server.api_server.mcp_routes import mcp_router
 from chatchat.server.api_server.openai_routes import openai_router
 from chatchat.server.api_server.server_routes import server_router
 from chatchat.server.api_server.tool_routes import tool_router
+from chatchat.server.auth.routes_auth import auth_router
+from chatchat.server.auth.routes_admin import admin_router
 from chatchat.server.chat.completion import completion
 from chatchat.server.utils import MakeFastAPIOffline
 
@@ -45,6 +47,8 @@ def create_app(run_mode: str = None):
     app.include_router(openai_router)
     app.include_router(server_router)
     app.include_router(mcp_router)
+    app.include_router(auth_router)
+    app.include_router(admin_router)
 
     # 其它接口
     app.post(
