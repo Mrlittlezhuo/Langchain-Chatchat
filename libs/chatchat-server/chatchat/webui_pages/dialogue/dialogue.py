@@ -22,23 +22,50 @@ from chatchat.server.knowledge_base.model.kb_document_model import DocumentWithV
 from chatchat.server.knowledge_base.utils import format_reference
 from chatchat.server.utils import MsgType, get_config_models, get_config_platforms, get_default_llm
 from chatchat.webui_pages.utils import *
+from streamlit_chatbox import Markdown as _Markdown
+from chatchat.webui_pages import auth_state
+from chatchat.webui_pages.auth_state import (
+    get_current_user,
+    get_token,
+    resolve_current_conversation,
+    synchronize_current_conversation,
+    conversation_options,
+    messages_to_history,
+)
 
 
 chat_box = ChatBox(assistant_avatar=get_img_base64("chatchat_icon_blue_square_v2.png"))
 
 
+# 不属于「会话级配置」的 session_state 键：不应被持久化进 ChatBox 的会话上下文，
+# 也不应随切换会话被恢复。包含会话管理、认证、UI 与图片/粘贴等状态。
+_CONTEXT_EXCLUDE = [
+    "selected_page",
+    "prompt",
+    "cur_conv_name",
+    "last_conv_name",
+    "upload_image",
+    "cur_image",
+    "paste_image",
+    "conversation_list",
+    "current_conversation_id",
+    "last_conversation_id",
+    "loaded_conv_ids",
+    "loaded_conversation_id",
+    "auth_token",
+    "current_user",
+    "_session_api",
+]
+
+
 def save_session(conv_name: str = None):
     """save session state to chat context"""
-    chat_box.context_from_session(
-        conv_name, exclude=["selected_page", "prompt", "cur_conv_name", "upload_image"]
-    )
+    chat_box.context_from_session(conv_name, exclude=_CONTEXT_EXCLUDE)
 
 
 def restore_session(conv_name: str = None):
     """restore sesstion state from chat context"""
-    chat_box.context_to_session(
-        conv_name, exclude=["selected_page", "prompt", "cur_conv_name", "upload_image"]
-    )
+    chat_box.context_to_session(conv_name, exclude=_CONTEXT_EXCLUDE)
 
 
 def rerun():
@@ -77,20 +104,30 @@ def get_messages_history(
     return messages
 
 
-@st.cache_data
 def upload_temp_docs(files, _api: ApiRequest) -> str:
     """
     将文件上传到临时目录，用于文件对话
     返回临时向量库ID
+
+    临时文件属于用户私有内容，本任务不缓存该结果，避免跨会话复用。
     """
     return _api.upload_temp_docs(files).get("data", {}).get("id")
 
 
-@st.cache_data
-def upload_image_file(file_name: str, content: bytes) -> dict:
+def upload_image_file(file_name: str, content: bytes, token: str) -> dict:
     '''upload image for vision model using openai sdk'''
-    client = openai.Client(base_url=f"{api_address()}/v1", api_key="NONE")
+    # OpenAI SDK 客户端携带当前会话 Token（不再 api_key="NONE"）。
+    # 图片上传属于用户私有操作，不使用跨会话缓存。
+    client = openai.Client(
+        base_url=f"{api_address()}/v1",
+        api_key=token or "NONE",
+    )
     return client.files.create(file=(file_name, content), purpose="assistants").to_dict()
+
+
+def clear_private_caches() -> None:
+    """兼容退出流程；用户私有上传函数当前不使用共享缓存。"""
+    return None
 
 
 def get_image_file_url(upload_file: dict) -> str:
@@ -98,7 +135,57 @@ def get_image_file_url(upload_file: dict) -> str:
     return f"{api_address(True)}/v1/files/{file_id}/content"
 
 
+# ---------------------------------------------------------------------------
+# 后端会话为事实来源（任务 7.3）：会话列表/当前会话/历史均以后端为准。
+# ---------------------------------------------------------------------------
+def ensure_backend_conversation(api: ApiRequest) -> str:
+    """确保当前会话存在并返回其后端 id。
+
+    - 已有 current_conversation_id 且仍在后端列表中：返回它。
+    - 已有 current_conversation_id 但已不在列表（如被删除）：选择剩余会话的第一个。
+    - 后端无会话：创建默认会话。
+    同时将会话列表（[{id, name}]）写入 session_state.conversation_list。
+    """
+    try:
+        backend_list = api.list_conversations()
+    except AuthenticationError:
+        backend_list = []
+    options = conversation_options(backend_list)
+    st.session_state["conversation_list"] = options
+    chosen = synchronize_current_conversation(st.session_state, options)
+    if chosen is None:
+        chosen = api.create_conversation("会话1").get("id")
+        st.session_state["current_conversation_id"] = chosen
+        st.session_state["cur_conv_name"] = chosen
+    return chosen
+
+
+def load_backend_history(api: ApiRequest, conv_id: str) -> None:
+    """将后端历史消息加载到 ChatBox（以 conv_id 为键）。
+
+    后端为事实来源；ChatBox 只用于显示与本次交互。重复调用（同会话）不重复加载。
+    """
+    if st.session_state.get("loaded_conversation_id") == conv_id:
+        return
+    try:
+        msgs = api.conversation_messages(conv_id)
+    except AuthenticationError:
+        msgs = []
+    history = [
+        {
+            "role": item["role"],
+            "elements": [_Markdown(item["content"])],
+            "metadata": {},
+        }
+        for item in messages_to_history(msgs)
+    ]
+    chat_box.use_chat_name(conv_id)
+    st.session_state[chat_box._session_key][conv_id]["history"] = history
+    st.session_state["loaded_conversation_id"] = conv_id
+
+
 def add_conv(name: str = ""):
+    """新建会话（本地 ChatBox 名称；kb_chat 仍使用）。"""
     conv_names = chat_box.get_chat_names()
     if not name:
         i = len(conv_names) + 1
@@ -120,21 +207,58 @@ def add_conv(name: str = ""):
 
 
 def del_conv(name: str = None):
+    """删除会话（本地 ChatBox 名称；kb_chat 仍使用）。"""
     conv_names = chat_box.get_chat_names()
     name = name or chat_box.cur_chat_name
 
     if len(conv_names) == 1:
         sac.alert(
-            "删除会话出错", f"这是最后一个会话，无法删除", color="error", closable=True
+            "删除会话出错", f"这是最后一个会话，无法删除",
+            color="error",
+            closable=True,
         )
     elif not name or name not in conv_names:
         sac.alert(
-            "删除会话出错", f"无效的会话名称：“{name}”", color="error", closable=True
+            "删除会话出错", f"无效的会话名称：“{name}”",
+            color="error",
+            closable=True,
         )
     else:
         chat_box.del_chat_name(name)
         # restore_session()
     st.session_state["cur_conv_name"] = chat_box.cur_chat_name
+
+
+def backend_add_conv(api: ApiRequest):
+    """新建会话（多功能对话页）：先创建后端会话，成功后切换为当前会话。"""
+    name = "会话" + str(len(st.session_state.get("conversation_list", [])) + 1)
+    try:
+        created = api.create_conversation(name)
+    except AuthenticationError:
+        sac.alert("新建会话出错", "登录已失效，请重新登录", color="error", closable=True)
+        return
+    cid = created.get("id")
+    st.session_state.pop("loaded_conversation_id", None)
+    st.session_state["current_conversation_id"] = cid
+    chat_box.use_chat_name(cid)
+    st.rerun()
+
+
+def backend_del_conv(api: ApiRequest):
+    """删除会话（多功能对话页）：先调用后端接口，成功后切换到剩余会话。"""
+    cid = st.session_state.get("current_conversation_id")
+    if not cid:
+        return
+    try:
+        api.delete_conversation(cid)
+    except AuthenticationError:
+        sac.alert("删除会话出错", "登录已失效，请重新登录", color="error", closable=True)
+        return
+    st.session_state.pop("loaded_conversation_id", None)
+    st.session_state.pop("current_conversation_id", None)
+    # 重新确定当前会话（剩余会话第一个，或创建默认会话）
+    ensure_backend_conversation(api)
+    st.rerun()
 
 
 def clear_conv(name: str = None):
@@ -155,18 +279,13 @@ def dialogue_page(
     ctx.setdefault("file_chat_id", None)
     ctx.setdefault("llm_model", get_default_llm())
     ctx.setdefault("temperature", Settings.model_settings.TEMPERATURE)
-    st.session_state.setdefault("cur_conv_name", chat_box.cur_chat_name)
-    st.session_state.setdefault("last_conv_name", chat_box.cur_chat_name)
 
-    # sac on_change callbacks not working since st>=1.34
-    if st.session_state.cur_conv_name != st.session_state.last_conv_name:
-        save_session(st.session_state.last_conv_name)
-        restore_session(st.session_state.cur_conv_name)
-        st.session_state.last_conv_name = st.session_state.cur_conv_name
-
-    # st.write(chat_box.cur_chat_name)
-    # st.write(st.session_state)
-    # st.write(chat_box.context)
+    # 后端为事实来源：确定当前会话 id，并从后端恢复其历史消息。
+    # 服务重启后仍可从后端加载历史（7.3）。
+    current_conv_id = ensure_backend_conversation(api)
+    load_backend_history(api, current_conv_id)
+    chat_box.use_chat_name(current_conv_id)
+    st.session_state["current_conversation_id"] = current_conv_id
 
     @st.experimental_dialog("模型配置", width="large")
     def llm_model_setting():
@@ -192,11 +311,17 @@ def dialogue_page(
 
     @st.experimental_dialog("重命名会话")
     def rename_conversation():
+        cid = st.session_state.get("current_conversation_id")
         name = st.text_input("会话名称")
-        if st.button("OK"):
-            chat_box.change_chat_name(name)
-            restore_session()
-            st.session_state["cur_conv_name"] = name
+        if st.button("OK") and name and cid:
+            try:
+                api.rename_conversation(cid, name)
+            except AuthenticationError:
+                st.toast("登录已失效，请重新登录")
+            # 更新会话列表缓存中的显示名称
+            for o in st.session_state.get("conversation_list", []):
+                if o.get("id") == cid:
+                    o["name"] = name
             rerun()
 
     with st.sidebar:
@@ -281,31 +406,42 @@ def dialogue_page(
                 st.image(cur_image[1])
                 buffer = io.BytesIO()
                 cur_image[1].save(buffer, format="png")
-                upload_image = upload_image_file(cur_image[0], buffer.getvalue())
+                upload_image = upload_image_file(
+                    cur_image[0], buffer.getvalue(), st.session_state.get(auth_state.TOKEN_KEY)
+                )
 
         with tab2:
-            # 会话
+            # 会话（后端为事实来源，以 conversation id 为稳定键）。
+            # selectbox 的选项与选中值均为后端 id，显示时用 formatter 映射为名称，
+            # 同名会话因 id 不同而被正确区分。
             cols = st.columns(3)
-            conv_names = chat_box.get_chat_names()
+            options = st.session_state.get("conversation_list", [])
+            ids = [o.get("id") for o in options]
+            id_to_name = {o.get("id"): o.get("name", "") for o in options}
 
-            def on_conv_change():
-                print(conversation_name, st.session_state.cur_conv_name)
-                save_session(conversation_name)
-                restore_session(st.session_state.cur_conv_name)
+            def _conv_display(value):
+                return f"{id_to_name.get(value, '')}（{value[:8]}…）"
 
-            conversation_name = sac.buttons(
-                conv_names,
-                label="当前会话：",
+            cur_conv_name = st.selectbox(
+                ids,
                 key="cur_conv_name",
-                # on_change=on_conv_change, # not work
+                label="当前会话：",
+                format_func=_conv_display,
             )
-            chat_box.use_chat_name(conversation_name)
-            conversation_id = chat_box.context["uid"]
-            if cols[0].button("新建", on_click=add_conv):
+
+            # 切换会话：cur_conv_name（后端 id）变化时，保存旧会话、恢复新会话（从后端）。
+            if cur_conv_name != current_conv_id:
+                save_session(current_conv_id)
+                st.session_state["current_conversation_id"] = cur_conv_name
+                load_backend_history(api, cur_conv_name)
+                chat_box.use_chat_name(cur_conv_name)
+                st.rerun()
+
+            if cols[0].button("新建", on_click=lambda: backend_add_conv(api)):
                 ...
             if cols[1].button("重命名"):
                 rename_conversation()
-            if cols[2].button("删除", on_click=del_conv):
+            if cols[2].button("删除", on_click=lambda: backend_del_conv(api)):
                 ...
 
     # Display chat messages from history on app rerun
@@ -391,7 +527,11 @@ def dialogue_page(
         text = ""
         started = False
 
-        client = openai.Client(base_url=f"{api_address()}/chat", api_key="NONE", timeout=100000)
+        client = openai.Client(
+            base_url=f"{api_address()}/chat",
+            api_key=st.session_state.get(auth_state.TOKEN_KEY) or "NONE",
+            timeout=100000,
+        )
         if is_vision_chat: # multimodal chat
             content = [
                 {"type": "text", "text": prompt},
@@ -413,7 +553,7 @@ def dialogue_page(
         extra_body = dict(
             metadata=files_upload,
             chat_model_config=chat_model_config,
-            conversation_id=conversation_id,
+            conversation_id=current_conv_id,
             tool_input=tool_input,
             upload_image=upload_image,
             use_mcp=use_mcp,

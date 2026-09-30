@@ -1,22 +1,23 @@
-"""会话与消息后端隔离离线测试（任务 003）。
+"""WebUI 会话隔离离线测试（任务 005）。
 
-覆盖用户 A/B 的基本隔离行为：
+覆盖 WebUI 登录/会话管理对后端隔离要求的实现：
 
-- 新会话自动归属当前用户，客户端不能指定 owner；
-- A/B 会话列表互不可见；
-- A 读取、重命名、删除 B 的会话均为 404；
-- A 不能读取或反馈 B 的消息；
-- 删除 A 的会话不影响 B；
-- 未登录返回 401，必须改密的用户返回 403；
-- 主聊天对其他用户 conversation_id 在模型调用前返回 404（mock 模型）；
-- owner 正确时消息创建和回答更新使用同一会话。
+- 会话列表、历史消息、重命名、删除均只作用于当前登录用户自己的会话；
+- 未登录时所有会话管理操作必须失败（WebUI 抛出 AuthenticationError）；
+- 后端对"其他用户的会话"一律返回 404，WebUI 不会把它误当成成功；
+- 用户 A 无法操作/读取用户 B 的会话与消息；
+- 必须改密（must_change_password=True）的用户会话管理返回 403；
+- 主聊天使用其他用户的 conversation_id 在调用模型前返回 404（mock 模型）；
+- owner 正确时，消息创建与回答更新使用同一会话；
+- 改密成功后必须改密标志被清除，会话管理随之可用。
 
-测试只使用临时 SQLite，不连接模型、网络或真实数据库；模型相关部分
-使用 mock。
+测试只使用临时 SQLite 与 FastAPI TestClient / httpx ASGITransport，不连接
+模型、网络或真实数据库；模型相关部分使用 mock。
 """
 import sys
 import types
 
+import httpx
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -25,9 +26,9 @@ from sqlalchemy.orm import sessionmaker
 
 # ---------------------------------------------------------------------------
 # 在导入 chat_routes 之前，先打桩 chatchat.server.chat.kb_chat。
-# kb_chat 的导入链（search_local_knowledgebase）在模块加载时会执行一次
-# 真实知识库数据库读取（list_kbs），离线测试无法提供该库。主聊天隔离测试
-# 只关心 chat_completions 处理器，不依赖 kb_chat 的实现，因此用桩替换。
+# kb_chat 的导入链（search_local_knowledgebase）在模块加载时会执行一次真实
+# 知识库数据库读取（list_kbs），离线测试无法提供该库。主聊天隔离测试只关心
+# chat_completions 处理器，不依赖 kb_chat 的实现，因此用桩替换。
 # ---------------------------------------------------------------------------
 _kb_stub = types.ModuleType("chatchat.server.chat.kb_chat")
 _kb_stub.kb_chat = lambda *args, **kwargs: None
@@ -40,7 +41,7 @@ from chatchat.server.db.migrate.base import apply_migrations
 from chatchat.server.db.migrate.migrations import build_registry
 from chatchat.server.db.models.conversation_model import ConversationModel
 from chatchat.server.db.models.message_model import MessageModel
-from chatchat.server.db.models.user_model import UserModel  # noqa: F401  (注册到 Base.metadata)
+from chatchat.server.db.models.user_model import UserModel  # noqa: F401 (注册到 Base.metadata)
 from chatchat.server.db.repository import (
     add_message,
     update_message,
@@ -49,6 +50,10 @@ from chatchat.server.auth import jwt as auth_jwt
 from chatchat.server.auth import service
 from chatchat.server.api_server.chat_routes import chat_router
 from chatchat.server.api_server.conversation_routes import conversation_router
+from chatchat.server.auth.routes_auth import auth_router
+
+from chatchat.webui_pages.utils import ApiRequest, AuthenticationError
+from chatchat.webui_pages import utils as webui_utils
 
 
 # ---------------------------------------------------------------------------
@@ -72,7 +77,6 @@ def temp_user_db(tmp_path):
     engine = create_engine(f"sqlite:///{path}")
     with engine.connect() as conn:
         apply_migrations(build_registry(), conn)
-    # 业务表由 create_all 用新版模型创建（conversation 含 owner_id/update_time/索引）
     Base.metadata.create_all(engine)
     Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     yield {"engine": engine, "Session": Session, "path": path}
@@ -80,11 +84,12 @@ def temp_user_db(tmp_path):
 
 
 @pytest.fixture
-def client(temp_user_db, secret):
-    """FastAPI TestClient：会话路由 + 主聊天路由，get_db 覆盖指向临时库。"""
-    app = FastAPI()
-    app.include_router(conversation_router)
-    app.include_router(chat_router)
+def app(temp_user_db):
+    """FastAPI 应用：会话路由 + 主聊天路由 + 认证路由，get_db 指向临时库。"""
+    a = FastAPI()
+    a.include_router(conversation_router)
+    a.include_router(chat_router)
+    a.include_router(auth_router)
 
     def override_get_db():
         s = temp_user_db["Session"]()
@@ -93,13 +98,48 @@ def client(temp_user_db, secret):
         finally:
             s.close()
 
-    app.dependency_overrides[db_session.get_db] = override_get_db
+    a.dependency_overrides[db_session.get_db] = override_get_db
+    return a
+
+
+@pytest.fixture
+def client(app):
     with TestClient(app) as test_client:
         yield test_client
 
 
+class _ApiBridge(TestClient):
+    """TestClient 子类：兼容 ApiRequest 的 get/post/patch/delete 调用签名。
+
+    ApiRequest 会显式传入 data=None/json=None，而 httpx 的 delete/patch 不接收
+    这些参数；这里统一过滤后再委托给 httpx/TestClient。
+    """
+
+    def get(self, url, params=None, headers=None, **kw):
+        return super().get(url, params=params, headers=headers)
+
+    def post(self, url, data=None, json=None, headers=None, **kw):
+        return super().post(url, data=data, json=json, headers=headers)
+
+    def patch(self, url, data=None, json=None, headers=None, **kw):
+        return super().patch(url, data=data, json=json, headers=headers)
+
+    def delete(self, url, data=None, json=None, headers=None, **kw):
+        return super().delete(url, headers=headers)
+
+
+@pytest.fixture
+def api_client(app, monkeypatch):
+    """让 WebUI 的 ApiRequest 直连同一个 ASGI 应用（不启动网络、不依赖真实服务）。"""
+    def _fake_get_httpx_client(use_async=False, **kwargs):
+        return _ApiBridge(app)
+
+    monkeypatch.setattr(webui_utils, "get_httpx_client", _fake_get_httpx_client)
+    yield None
+
+
 def _mk_user(temp_user_db, username, role="user", must_change_password=False):
-    """在临时库创建用户，返回其非敏感字段。"""
+    """在临时库创建用户，返回其非敏感字段（默认视为已改密）。"""
     S = temp_user_db["Session"]
     s = S()
     try:
@@ -107,7 +147,7 @@ def _mk_user(temp_user_db, username, role="user", must_change_password=False):
             s,
             username=username,
             display_name=username.title(),
-            password="password1234",
+            password="password12345678",
             role=role,
         )
         u.must_change_password = must_change_password
@@ -122,9 +162,11 @@ def _mk_user(temp_user_db, username, role="user", must_change_password=False):
         s.close()
 
 
-def _headers(temp_user_db, secret, username):
-    u = _mk_user(temp_user_db, username)
-    return {"Authorization": f"Bearer {auth_jwt.create_token(u['id'], u['auth_version'])}"}, u
+def _mk_api(temp_user_db, secret, username, must_change_password=False):
+    """创建一个已登录的 WebUI ApiRequest（token 由服务端签发）。"""
+    u = _mk_user(temp_user_db, username, must_change_password=must_change_password)
+    token = auth_jwt.create_token(u["id"], u["auth_version"])
+    return ApiRequest(base_url="http://api.test", token=token), u
 
 
 def _create_conv(client, headers, name="t", chat_type="llm_chat"):
@@ -133,14 +175,18 @@ def _create_conv(client, headers, name="t", chat_type="llm_chat"):
     return r.json()["id"]
 
 
+def _headers_of(temp_user_db, username, must_change_password=False):
+    u = _mk_user(temp_user_db, username, must_change_password=must_change_password)
+    return {"Authorization": f"Bearer {auth_jwt.create_token(u['id'], u['auth_version'])}"}, u
+
+
 # ---------------------------------------------------------------------------
-# 会话创建：自动归属当前用户，客户端不能指定 owner
+# 会话创建：自动归属当前用户；客户端不能指定 owner
 # ---------------------------------------------------------------------------
 
 
 def test_new_conversation_owned_by_server_not_client(client, temp_user_db, secret):
-    hdr, a = _headers(temp_user_db, secret, "alice")
-    # 请求体里尝试指定 owner，应被忽略
+    hdr, a = _headers_of(temp_user_db, "alice")
     r = client.post(
         "/conversations",
         headers=hdr,
@@ -153,7 +199,7 @@ def test_new_conversation_owned_by_server_not_client(client, temp_user_db, secre
         c = s.get(ConversationModel, cid)
         assert c is not None
         assert c.owner_id == a["id"]
-        assert "owner_id" not in r.json()  # 响应不返回 owner_id
+        assert "owner_id" not in r.json()
     finally:
         s.close()
 
@@ -163,21 +209,42 @@ def test_unlogged_create_conversation_401(client):
     assert r.status_code == 401
 
 
-def test_must_change_password_403(client, temp_user_db, secret):
-    S = temp_user_db["Session"]
-    s = S()
+# ---------------------------------------------------------------------------
+# 必须改密的普通用户：WebUI 会话管理必须失败（403）
+# ---------------------------------------------------------------------------
+
+
+def test_must_change_password_blocks_conversation_management(client, temp_user_db, secret):
+    hdr, _ = _headers_of(temp_user_db, "bob", must_change_password=True)
+    assert client.post("/conversations", headers=hdr, json={"name": "x", "chat_type": "llm_chat"}).status_code == 403
+    assert client.get("/conversations", headers=hdr).status_code == 403
+
+
+def test_must_change_password_api_client_raises(client, api_client, temp_user_db, secret):
+    api, _ = _mk_api(temp_user_db, secret, "carol", must_change_password=True)
+    with pytest.raises(Exception):
+        api.list_conversations()
+
+
+def test_change_password_clears_flag_and_enables_conversations(client, temp_user_db, secret):
+    hdr, _ = _headers_of(temp_user_db, "dave", must_change_password=True)
+    assert client.get("/conversations", headers=hdr).status_code == 403
+    r = client.post(
+        "/auth/change-password",
+        headers=hdr,
+        json={"old_password": "password12345678", "password": "newpass567890"},
+    )
+    assert r.status_code == 200, r.text
+    s = temp_user_db["Session"]()
     try:
-        u = service.create_user(
-            s, username="bob", display_name="Bob", password="password1234", role="user"
-        )
-        u.must_change_password = True
-        s.commit()
-        token = auth_jwt.create_token(u.id, u.auth_version)
+        u = s.query(UserModel).filter_by(username="dave").one()
+        assert u.must_change_password is False
+        new_token = auth_jwt.create_token(u.id, u.auth_version)
     finally:
         s.close()
-    hdr = {"Authorization": f"Bearer {token}"}
-    assert client.post("/conversations", headers=hdr, json={"name": "x"}).status_code == 403
-    assert client.get("/conversations", headers=hdr).status_code == 403
+    new_hdr = {"Authorization": f"Bearer {new_token}"}
+    r = client.get("/conversations", headers=new_hdr)
+    assert r.status_code == 200, r.text
 
 
 # ---------------------------------------------------------------------------
@@ -186,8 +253,8 @@ def test_must_change_password_403(client, temp_user_db, secret):
 
 
 def test_lists_are_per_user(client, temp_user_db, secret):
-    hdr_a, a = _headers(temp_user_db, secret, "alice")
-    hdr_b, b = _headers(temp_user_db, secret, "bob")
+    hdr_a, _ = _headers_of(temp_user_db, "alice")
+    hdr_b, _ = _headers_of(temp_user_db, "bob")
     ca = _create_conv(client, hdr_a, "only-a")
     cb = _create_conv(client, hdr_b, "only-b")
 
@@ -203,21 +270,37 @@ def test_lists_are_per_user(client, temp_user_db, secret):
 
 
 def test_a_cannot_read_rename_delete_b_conversation(client, temp_user_db, secret):
-    hdr_a, a = _headers(temp_user_db, secret, "alice")
-    hdr_b, b = _headers(temp_user_db, secret, "bob")
+    hdr_a, _ = _headers_of(temp_user_db, "alice")
+    hdr_b, _ = _headers_of(temp_user_db, "bob")
     cb = _create_conv(client, hdr_b, "secret")
 
     assert client.get(f"/conversations/{cb}", headers=hdr_a).status_code == 404
     assert client.patch(f"/conversations/{cb}", headers=hdr_a, json={"name": "hax"}).status_code == 404
     assert client.delete(f"/conversations/{cb}", headers=hdr_a).status_code == 404
 
-    # B 的会话仍在
     assert client.get(f"/conversations/{cb}", headers=hdr_b).status_code == 200
 
 
+def test_a_cannot_rename_b_conversation_via_api(client, api_client, temp_user_db, secret):
+    api_a, _ = _mk_api(temp_user_db, secret, "alice")
+    api_b, _ = _mk_api(temp_user_db, secret, "bob")
+    hdr_b = {"Authorization": f"Bearer {api_b.token}"}
+    cb = _create_conv(client, hdr_b, "secret")
+    r = api_b.rename_conversation(cb, "mine")
+    assert r.get("name") == "mine"
+    r2 = api_a.rename_conversation(cb, "stolen")
+    assert r2.get("name") != "stolen"
+    assert api_b.get_conversation(cb).get("name") == "mine"
+
+
+# ---------------------------------------------------------------------------
+# A 不能读取 B 的会话历史消息
+# ---------------------------------------------------------------------------
+
+
 def test_a_cannot_read_messages_of_b_conversation(client, temp_user_db, secret):
-    hdr_a, a = _headers(temp_user_db, secret, "alice")
-    hdr_b, b = _headers(temp_user_db, secret, "bob")
+    hdr_a, _ = _headers_of(temp_user_db, "alice")
+    hdr_b, b = _headers_of(temp_user_db, "bob")
     cb = _create_conv(client, hdr_b, "secret")
     s = temp_user_db["Session"]()
     try:
@@ -231,14 +314,30 @@ def test_a_cannot_read_messages_of_b_conversation(client, temp_user_db, secret):
     assert [m["query"] for m in r.json()["messages"]] == ["q"]
 
 
+def test_a_cannot_read_b_messages_via_api(client, api_client, temp_user_db, secret):
+    api_a, _ = _mk_api(temp_user_db, secret, "alice")
+    api_b, b = _mk_api(temp_user_db, secret, "bob")
+    hdr_b = {"Authorization": f"Bearer {api_b.token}"}
+    cb = _create_conv(client, hdr_b, "secret")
+    s = temp_user_db["Session"]()
+    try:
+        add_message(s, cb, b["id"], "llm_chat", "secret-q", response="a")
+    finally:
+        s.close()
+    b_msgs = api_b.conversation_messages(cb)
+    assert [m["query"] for m in b_msgs] == ["secret-q"]
+    r = api_a.conversation_messages(cb)
+    assert "messages" not in r
+
+
 # ---------------------------------------------------------------------------
 # 删除 A 的会话不影响 B
 # ---------------------------------------------------------------------------
 
 
 def test_delete_a_conversation_does_not_affect_b(client, temp_user_db, secret):
-    hdr_a, a = _headers(temp_user_db, secret, "alice")
-    hdr_b, b = _headers(temp_user_db, secret, "bob")
+    hdr_a, a = _headers_of(temp_user_db, "alice")
+    hdr_b, b = _headers_of(temp_user_db, "bob")
     ca = _create_conv(client, hdr_a, "a-conv")
     cb = _create_conv(client, hdr_b, "b-conv")
     s = temp_user_db["Session"]()
@@ -253,9 +352,7 @@ def test_delete_a_conversation_does_not_affect_b(client, temp_user_db, secret):
     s = temp_user_db["Session"]()
     try:
         assert s.get(ConversationModel, ca) is None
-        # A 的消息被同步删除
         assert s.query(MessageModel).filter_by(conversation_id=ca).count() == 0
-        # B 的会话与消息不受影响
         assert s.get(ConversationModel, cb) is not None
         assert s.query(MessageModel).filter_by(conversation_id=cb).count() == 1
     finally:
@@ -268,8 +365,8 @@ def test_delete_a_conversation_does_not_affect_b(client, temp_user_db, secret):
 
 
 def test_a_cannot_feedback_b_message(client, temp_user_db, secret):
-    hdr_a, a = _headers(temp_user_db, secret, "alice")
-    hdr_b, b = _headers(temp_user_db, secret, "bob")
+    hdr_a, _ = _headers_of(temp_user_db, "alice")
+    hdr_b, b = _headers_of(temp_user_db, "bob")
     cb = _create_conv(client, hdr_b, "secret")
     s = temp_user_db["Session"]()
     try:
@@ -277,9 +374,7 @@ def test_a_cannot_feedback_b_message(client, temp_user_db, secret):
     finally:
         s.close()
 
-    # A 反馈 B 的消息 → 404
     assert client.post("/chat/feedback", headers=hdr_a, json={"message_id": mid, "score": 100}).status_code == 404
-    # B 反馈自己的消息 → 200
     assert client.post("/chat/feedback", headers=hdr_b, json={"message_id": mid, "score": 100}).status_code == 200
 
 
@@ -299,8 +394,8 @@ def test_chat_other_user_conversation_id_404_before_model(client, temp_user_db, 
 
     monkeypatch.setattr(cr, "chat", fake_chat)
 
-    hdr_a, a = _headers(temp_user_db, secret, "alice")
-    hdr_b, b = _headers(temp_user_db, secret, "bob")
+    hdr_a, _ = _headers_of(temp_user_db, "alice")
+    hdr_b, _ = _headers_of(temp_user_db, "bob")
     cb = _create_conv(client, hdr_b, "secret")
 
     body = {
@@ -311,9 +406,8 @@ def test_chat_other_user_conversation_id_404_before_model(client, temp_user_db, 
     }
     r = client.post("/chat/chat/completions", headers=hdr_a, json=body)
     assert r.status_code == 404
-    assert model_called["n"] == 0  # 未调用模型
+    assert model_called["n"] == 0
 
-    # A 自己的会话可以进入（mock 返回），并在响应中保留会话 ID
     ca = _create_conv(client, hdr_a, "mine")
     body["conversation_id"] = ca
     r = client.post("/chat/chat/completions", headers=hdr_a, json=body)
@@ -327,7 +421,7 @@ def test_chat_other_user_conversation_id_404_before_model(client, temp_user_db, 
 
 
 def test_add_and_update_message_same_conversation(temp_user_db, secret):
-    _, a = _headers(temp_user_db, secret, "alice")
+    _, a = _headers_of(temp_user_db, "alice")
     S = temp_user_db["Session"]
     s = S()
     try:
@@ -339,11 +433,9 @@ def test_add_and_update_message_same_conversation(temp_user_db, secret):
 
         m = s.get(MessageModel, mid)
         assert m is not None
-        assert m.conversation_id == conv  # 同一条会话
+        assert m.conversation_id == conv
         assert m.response == "a"
-        # owner 视角可看到该消息所属会话
         assert get_owned_conversation(s, conv, a["id"]) is not None
-        # 另一个 owner 看不到该消息
         from chatchat.server.db.repository.message_repository import _owned_message
 
         assert _owned_message(s, mid, "someone-else") is None
@@ -361,7 +453,7 @@ def test_chat_owner_correct_creates_message_in_same_conversation(
 
     monkeypatch.setattr(cr, "chat", fake_chat)
 
-    hdr_a, a = _headers(temp_user_db, secret, "alice")
+    hdr_a, _ = _headers_of(temp_user_db, "alice")
     ca = _create_conv(client, hdr_a, "mine")
     r = client.post(
         "/chat/chat/completions",
@@ -385,11 +477,91 @@ def test_chat_owner_correct_creates_message_in_same_conversation(
 
 
 # ---------------------------------------------------------------------------
-# 主聊天未登录 401 / 必须改密 403
+# WebUI 客户端：未登录时所有会话管理操作失败
 # ---------------------------------------------------------------------------
 
 
-def test_chat_completions_unlogged_401(client):
+def test_unlogged_api_client_fails_on_all_operations(api_client, temp_user_db, secret):
+    api = ApiRequest(base_url="http://api.test", token=None)
+    for op in (
+        api.list_conversations,
+        lambda: api.create_conversation("x", "llm_chat"),
+        lambda: api.get_conversation("any-id"),
+        lambda: api.rename_conversation("any-id", "x"),
+        lambda: api.delete_conversation("any-id"),
+        lambda: api.conversation_messages("any-id"),
+    ):
+        with pytest.raises(Exception):
+            op()
+
+
+def test_unlogged_client_list_401(client):
+    assert client.get("/conversations").status_code == 401
+    assert client.post("/conversations", json={"name": "x", "chat_type": "llm_chat"}).status_code == 401
+
+
+def test_me_requires_login(client):
+    assert client.get("/auth/me").status_code == 401
+
+
+def test_me_returns_current_user(client, temp_user_db, secret):
+    hdr, u = _headers_of(temp_user_db, "alice")
+    r = client.get("/auth/me", headers=hdr)
+    assert r.status_code == 200
+    assert r.json()["username"] == "alice"
+
+
+# ---------------------------------------------------------------------------
+# WebUI 客户端：会话管理只作用于自己的会话（通过 ApiRequest 完整闭环）
+# ---------------------------------------------------------------------------
+
+
+def test_api_client_full_lifecycle_only_own(api_client, temp_user_db, secret):
+    api, u = _mk_api(temp_user_db, secret, "alice")
+    conv = api.create_conversation("my-conv", "llm_chat")
+    cid = conv["id"]
+    assert cid
+    assert any(c["id"] == cid for c in api.list_conversations())
+    r = api.rename_conversation(cid, "renamed")
+    assert r.get("name") == "renamed"
+    api.delete_conversation(cid)
+    assert not any(c["id"] == cid for c in api.list_conversations())
+    s = temp_user_db["Session"]()
+    try:
+        assert s.get(ConversationModel, cid) is None
+    finally:
+        s.close()
+
+
+# ---------------------------------------------------------------------------
+# WebUI 客户端：无法操作/读取其他用户的会话
+# ---------------------------------------------------------------------------
+
+
+def test_api_client_cannot_touch_other_users_conversation(client, api_client, temp_user_db, secret):
+    api_a, _ = _mk_api(temp_user_db, secret, "alice")
+    api_b, b = _mk_api(temp_user_db, secret, "bob")
+    cb = api_b.create_conversation("b-secret", "llm_chat")["id"]
+
+    r = api_a.get_conversation(cb)
+    assert r.get("id") != cb or "detail" in r
+
+    api_a.rename_conversation(cb, "stolen")
+    assert api_b.get_conversation(cb).get("name") == "b-secret"
+
+    api_a.delete_conversation(cb)
+    assert api_b.get_conversation(cb).get("id") == cb
+
+    s = temp_user_db["Session"]()
+    try:
+        add_message(s, cb, b["id"], "llm_chat", "b-q", response="b-a")
+    finally:
+        s.close()
+    r = api_a.conversation_messages(cb)
+    assert "messages" not in r
+
+
+def test_unlogged_chat_completions_401(client):
     r = client.post(
         "/chat/chat/completions",
         json={"model": "qwen:7b", "stream": False, "messages": [{"role": "user", "content": "hi"}]},

@@ -22,6 +22,10 @@ logger = build_logger()
 set_httpx_config()
 
 
+class AuthenticationError(Exception):
+    """API 返回 401（未登录/Token 过期/用户失效）时抛出，WebUI 据此清理本地登录状态。"""
+
+
 class ApiRequest:
     """
     api.py调用的封装（同步模式）,简化api调用方式
@@ -31,11 +35,26 @@ class ApiRequest:
         self,
         base_url: str = api_address(),
         timeout: float = Settings.basic_settings.HTTPX_DEFAULT_TIMEOUT,
+        token: Optional[str] = None,
     ):
         self.base_url = base_url
         self.timeout = timeout
         self._use_async = False
         self._client = None
+        # 登录后的 Bearer Token；None 表示未登录，不附加 Authorization 头
+        self.token: Optional[str] = token
+
+    def _auth_headers(self, provided: Optional[Dict] = None) -> Dict:
+        """合并调用方提供的 headers 与登录 Token。
+
+        - 未登录（无 Token）时不附加 Authorization。
+        - 调用方已显式提供 Authorization 时，不覆盖（caller-supplied 优先）。
+        - 其余调用方 headers 一律保留。
+        """
+        headers = dict(provided) if provided else {}
+        if self.token and "Authorization" not in headers:
+            headers["Authorization"] = f"Bearer {self.token}"
+        return headers
 
     @property
     def client(self):
@@ -53,12 +72,13 @@ class ApiRequest:
         stream: bool = False,
         **kwargs: Any,
     ) -> Union[httpx.Response, Iterator[httpx.Response], None]:
+        headers = self._auth_headers(kwargs.pop("headers", None))
         while retry > 0:
             try:
                 if stream:
-                    return self.client.stream("GET", url, params=params, **kwargs)
+                    return self.client.stream("GET", url, params=params, headers=headers, **kwargs)
                 else:
-                    return self.client.get(url, params=params, **kwargs)
+                    return self.client.get(url, params=params, headers=headers, **kwargs)
             except Exception as e:
                 msg = f"error when get {url}: {e}"
                 logger.error(f"{e.__class__.__name__}: {msg}")
@@ -73,15 +93,16 @@ class ApiRequest:
         stream: bool = False,
         **kwargs: Any,
     ) -> Union[httpx.Response, Iterator[httpx.Response], None]:
+        headers = self._auth_headers(kwargs.pop("headers", None))
         while retry > 0:
             try:
                 # print(kwargs)
                 if stream:
                     return self.client.stream(
-                        "POST", url, data=data, json=json, **kwargs
+                        "POST", url, data=data, json=json, headers=headers, **kwargs
                     )
                 else:
-                    return self.client.post(url, data=data, json=json, **kwargs)
+                    return self.client.post(url, data=data, json=json, headers=headers, **kwargs)
             except Exception as e:
                 msg = f"error when post {url}: {e}"
                 logger.error(f"{e.__class__.__name__}: {msg}")
@@ -96,14 +117,15 @@ class ApiRequest:
         stream: bool = False,
         **kwargs: Any,
     ) -> Union[httpx.Response, Iterator[httpx.Response], None]:
+        headers = self._auth_headers(kwargs.pop("headers", None))
         while retry > 0:
             try:
                 if stream:
                     return self.client.stream(
-                        "DELETE", url, data=data, json=json, **kwargs
+                        "DELETE", url, data=data, json=json, headers=headers, **kwargs
                     )
                 else:
-                    return self.client.delete(url, data=data, json=json, **kwargs)
+                    return self.client.delete(url, data=data, json=json, headers=headers, **kwargs)
             except Exception as e:
                 msg = f"error when delete {url}: {e}"
                 logger.error(f"{e.__class__.__name__}: {msg}")
@@ -118,16 +140,40 @@ class ApiRequest:
         stream: bool = False,
         **kwargs: Any,
     ) -> Union[httpx.Response, Iterator[httpx.Response], None]:
+        headers = self._auth_headers(kwargs.pop("headers", None))
         while retry > 0:
             try:
                 if stream:
                     return self.client.stream(
-                        "PUT", url, data=data, json=json, **kwargs
+                        "PUT", url, data=data, json=json, headers=headers, **kwargs
                     )
                 else:
-                    return self.client.put(url, data=data, json=json, **kwargs)
+                    return self.client.put(url, data=data, json=json, headers=headers, **kwargs)
             except Exception as e:
                 msg = f"error when put {url}: {e}"
+                logger.error(f"{e.__class__.__name__}: {msg}")
+                retry -= 1
+
+    def patch(
+        self,
+        url: str,
+        data: Dict = None,
+        json: Dict = None,
+        retry: int = 3,
+        stream: bool = False,
+        **kwargs: Any,
+    ) -> Union[httpx.Response, Iterator[httpx.Response], None]:
+        headers = self._auth_headers(kwargs.pop("headers", None))
+        while retry > 0:
+            try:
+                if stream:
+                    return self.client.stream(
+                        "PATCH", url, data=data, json=json, headers=headers, **kwargs
+                    )
+                else:
+                    return self.client.patch(url, data=data, json=json, headers=headers, **kwargs)
+            except Exception as e:
+                msg = f"error when patch {url}: {e}"
                 logger.error(f"{e.__class__.__name__}: {msg}")
                 retry -= 1
 
@@ -395,6 +441,105 @@ class ApiRequest:
             stream=True,
         )
         return self._httpx_stream2generator(response, as_json=True)
+
+    # 认证相关操作
+    # 注意：/auth/* 与 /conversations/* 接口直接返回 JSON（无 {"code","data"} 包装）。
+    # 401 统一抛出 AuthenticationError，由 WebUI 触发本地登录状态清理。
+
+    def _raise_for_auth(self, response) -> None:
+        # 401：未登录 / Token 过期 / 用户已失效
+        # 403：必须改密等「未完全授权」状态
+        # 两者都要求 WebUI 清理本地登录态并回到登录页。
+        if response is not None and response.status_code in (401, 403):
+            raise AuthenticationError("认证失败：未登录、Token 过期、用户已失效或未改密")
+
+    def login(self, username: str, password: str, **kwargs):
+        """对应 POST /auth/login，返回 {"token","token_type","expires_in","user"}"""
+        data = {"username": username, "password": password}
+        response = self.post("/auth/login", json=data, retry=1, **kwargs)
+        if response is None:
+            raise AuthenticationError("无法连接API服务器，登录失败")
+        self._raise_for_auth(response)
+        return self._get_response_value(response, as_json=True)
+
+    def me(self, **kwargs):
+        """对应 GET /auth/me，校验当前 Token，返回用户信息；401 抛出 AuthenticationError"""
+        response = self.get("/auth/me", retry=1, **kwargs)
+        if response is None:
+            raise AuthenticationError("无法连接API服务器")
+        self._raise_for_auth(response)
+        return self._get_response_value(response, as_json=True)
+
+    def logout(self, **kwargs):
+        """对应 POST /auth/logout；无论请求成败，调用方都应清理本地登录状态"""
+        response = self.post("/auth/logout", retry=1, **kwargs)
+        return self._get_response_value(response, as_json=True)
+
+    def change_password(self, old_password: str, new_password: str, **kwargs):
+        """对应 POST /auth/change-password（请求体字段为 old_password/password）"""
+        data = {"old_password": old_password, "password": new_password}
+        response = self.post("/auth/change-password", json=data, retry=1, **kwargs)
+        if response is None:
+            raise AuthenticationError("无法连接API服务器")
+        self._raise_for_auth(response)
+        return self._get_response_value(response, as_json=True)
+
+    # 会话（conversation）相关操作 —— 后端为会话事实来源
+
+    def list_conversations(self, **kwargs) -> List[Dict]:
+        """对应 GET /conversations，返回当前用户会话列表（每项含 id/name，update_time DESC）"""
+        response = self.get("/conversations", retry=1, **kwargs)
+        if response is None:
+            raise AuthenticationError("无法连接API服务器")
+        self._raise_for_auth(response)
+        return self._get_response_value(response, as_json=True)
+
+    def create_conversation(
+        self, name: str = "新建对话", chat_type: str = "agent_chat", **kwargs
+    ) -> Dict:
+        """对应 POST /conversations，返回新会话（含 id）"""
+        data = {"name": name, "chat_type": chat_type}
+        response = self.post("/conversations", json=data, retry=1, **kwargs)
+        if response is None:
+            raise AuthenticationError("无法连接API服务器")
+        self._raise_for_auth(response)
+        return self._get_response_value(response, as_json=True)
+
+    def get_conversation(self, conversation_id: str, **kwargs) -> Dict:
+        """对应 GET /conversations/{id}"""
+        response = self.get(f"/conversations/{conversation_id}", retry=1, **kwargs)
+        if response is None:
+            raise AuthenticationError("无法连接API服务器")
+        self._raise_for_auth(response)
+        return self._get_response_value(response, as_json=True)
+
+    def rename_conversation(self, conversation_id: str, name: str, **kwargs) -> Dict:
+        """对应 PATCH /conversations/{id}"""
+        data = {"name": name}
+        response = self.patch(f"/conversations/{conversation_id}", json=data, retry=1, **kwargs)
+        if response is None:
+            raise AuthenticationError("无法连接API服务器")
+        self._raise_for_auth(response)
+        return self._get_response_value(response, as_json=True)
+
+    def delete_conversation(self, conversation_id: str, **kwargs) -> Dict:
+        """对应 DELETE /conversations/{id}"""
+        response = self.delete(f"/conversations/{conversation_id}", retry=1, **kwargs)
+        if response is None:
+            raise AuthenticationError("无法连接API服务器")
+        self._raise_for_auth(response)
+        return self._get_response_value(response, as_json=True)
+
+    def conversation_messages(self, conversation_id: str, **kwargs) -> List[Dict]:
+        """对应 GET /conversations/{id}/messages，按 create_time ASC 返回历史消息"""
+        response = self.get(f"/conversations/{conversation_id}/messages", retry=1, **kwargs)
+        if response is None:
+            raise AuthenticationError("无法连接API服务器")
+        self._raise_for_auth(response)
+        data = self._get_response_value(response, as_json=True)
+        if isinstance(data, dict):
+            return data.get("messages", [])
+        return data if isinstance(data, list) else []
 
     # 知识库相关操作
 
@@ -914,9 +1059,12 @@ class ApiRequest:
 
 class AsyncApiRequest(ApiRequest):
     def __init__(
-        self, base_url: str = api_address(), timeout: float = Settings.basic_settings.HTTPX_DEFAULT_TIMEOUT
+        self,
+        base_url: str = api_address(),
+        timeout: float = Settings.basic_settings.HTTPX_DEFAULT_TIMEOUT,
+        token: Optional[str] = None,
     ):
-        super().__init__(base_url, timeout)
+        super().__init__(base_url, timeout, token=token)
         self._use_async = True
 
 
