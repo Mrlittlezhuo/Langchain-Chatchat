@@ -423,9 +423,9 @@ def dialogue_page(
                 return f"{id_to_name.get(value, '')}（{value[:8]}…）"
 
             cur_conv_name = st.selectbox(
+                "当前会话：",
                 ids,
                 key="cur_conv_name",
-                label="当前会话：",
                 format_func=_conv_display,
             )
 

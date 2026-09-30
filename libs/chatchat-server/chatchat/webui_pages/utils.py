@@ -460,6 +460,10 @@ class ApiRequest:
         if response is None:
             raise AuthenticationError("无法连接API服务器，登录失败")
         self._raise_for_auth(response)
+        # 仅 2xx 才视为登录成功；其它状态码（如 404/500）一律失败，
+        # 绝不把没有 token 的载荷当成功返回。
+        if response.status_code >= 400:
+            raise AuthenticationError("登录失败：服务器返回异常状态")
         return self._get_response_value(response, as_json=True)
 
     def me(self, **kwargs):
@@ -468,6 +472,8 @@ class ApiRequest:
         if response is None:
             raise AuthenticationError("无法连接API服务器")
         self._raise_for_auth(response)
+        if response.status_code >= 400:
+            raise AuthenticationError("无法校验当前用户（登录可能已失效）")
         return self._get_response_value(response, as_json=True)
 
     def logout(self, **kwargs):
@@ -482,6 +488,8 @@ class ApiRequest:
         if response is None:
             raise AuthenticationError("无法连接API服务器")
         self._raise_for_auth(response)
+        if response.status_code >= 400:
+            raise AuthenticationError("修改密码失败：服务器返回异常状态")
         return self._get_response_value(response, as_json=True)
 
     # 会话（conversation）相关操作 —— 后端为会话事实来源
