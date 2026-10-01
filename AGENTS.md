@@ -8,6 +8,16 @@
 - 执行 `git status --short --branch`、`git log -5 --oneline --decorate`、`git stash list`，确认分支、基线和遗留改动。
 - 未确认归属前，不删除、覆盖、暂存或提交已有改动。
 
+## 本机开发环境
+
+- 当前机器上本项目固定使用 Conda 环境 `Langchain-Chatchat`。
+- Python 路径为
+  `/home/lab239/anaconda3/envs/Langchain-Chatchat/bin/python`。
+- Python、pip 和 pytest 命令必须使用已激活的 `Langchain-Chatchat` 环境、
+  `conda run -n Langchain-Chatchat ...` 或上述绝对路径，不得误用 `base`
+  环境或系统 Python。
+- 安装依赖时优先使用 `python -m pip`，确保 pip 与当前 Python 属于同一环境。
+
 ## Codex 与 Claude Code 分工
 
 - Codex 负责需求分析、源码调查、任务拆分、Claude 任务文档、代码审查、补充修复、最终测试和 Git 交付。
