@@ -1,7 +1,6 @@
 import sys
 
 import streamlit as st
-import streamlit_antd_components as sac
 
 from chatchat import __version__
 from chatchat.server.utils import api_address
@@ -140,17 +139,15 @@ def render_business_sidebar(api: ApiRequest, user: dict, cookie_manager=None) ->
         if st.button("退出登录", use_container_width=True):
             _do_logout(cookie_manager)
 
-        sac.divider()
+        st.divider()
 
-        selected_page = sac.menu(
-            [
-                sac.MenuItem("多功能对话", icon="chat"),
-                sac.MenuItem("RAG 对话", icon="database"),
-                sac.MenuItem("知识库管理", icon="hdd-stack"),
-                sac.MenuItem("MCP 管理", icon="hdd-stack"),
-            ],
+        # 原生控件导航（方案 A）：不依赖 streamlit_antd_components 自定义组件，
+        # 避免组件在浏览器侧未渲染时整行菜单消失。
+        selected_page = st.radio(
+            "功能",
+            ["多功能对话", "RAG 对话", "知识库管理", "MCP 管理"],
             key="selected_page",
-            open_index=0,
+            label_visibility="collapsed",
         )
 
     return selected_page
