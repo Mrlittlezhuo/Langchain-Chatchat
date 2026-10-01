@@ -1,7 +1,8 @@
 """WebUI 登录态与用户私有状态的辅助函数。
 
 设计目标（对应任务文档 7.1 / 7.2 / 7.4）：
-- 登录 Token 与当前用户只保存在 ``st.session_state`` 中；未登录不渲染任何业务页面。
+- 当前用户只保存在 ``st.session_state`` 中；Token 同时通过 Cookie 适配层支持刷新恢复；
+  未登录不渲染任何业务页面。
 - 401（未登录 / Token 过期 / 用户已失效）统一清理所有用户私有页面状态并回到登录页。
 - 用户私有数据不进入跨用户共享的模块级 HTTP 客户端，也不进入不带用户 id 的缓存。
 
@@ -21,6 +22,12 @@ TOKEN_KEY = "auth_token"
 CURRENT_USER_KEY = "current_user"
 SESSION_API_KEY = "_session_api"
 
+# 任务 005：Cookie 登录恢复相关键
+# 登录响应中的 Token 有效期（秒），用于约束 Cookie 生命周期
+AUTH_EXPIRES_IN_KEY = "auth_expires_in"
+# 「旧 Cookie 已作废」标记：退出 / 改密成功后置位，直到 Cookie 确认为空，
+# 阻止旧 Token 在 Cookie 真正删除前被恢复回 Session State
+COOKIE_INVALIDATED_KEY = "cookie_invalidated"
 # 会话（conversation，后端 id 为主键）
 CONVERSATION_LIST_KEY = "conversation_list"
 CURRENT_CONVERSATION_ID_KEY = "current_conversation_id"
@@ -67,6 +74,8 @@ PRIVATE_STATE_KEYS: List[str] = [
     TOKEN_KEY,
     CURRENT_USER_KEY,
     SESSION_API_KEY,
+    AUTH_EXPIRES_IN_KEY,
+    COOKIE_INVALIDATED_KEY,
     CONVERSATION_LIST_KEY,
     CURRENT_CONVERSATION_ID_KEY,
     LAST_CONVERSATION_ID_KEY,
@@ -110,11 +119,36 @@ def get_current_user(session: Dict[str, Any]) -> Optional[Dict[str, Any]]:
 
 
 def set_authenticated_state(
-    session: Dict[str, Any], token: str, user: Dict[str, Any]
+    session: Dict[str, Any],
+    token: str,
+    user: Dict[str, Any],
+    expires_in: Optional[int] = None,
 ) -> None:
-    """登录成功后写入当前会话的 Token 与用户信息（仅本会话可见）。"""
+    """登录成功后写入当前会话的 Token、用户信息与 Token 有效期（仅本会话可见）。
+
+    ``expires_in``（秒）来自登录响应，用于约束 Cookie 生命周期（任务 005，7.1）。
+    """
     session[TOKEN_KEY] = token
     session[CURRENT_USER_KEY] = user
+    session[AUTH_EXPIRES_IN_KEY] = expires_in
+
+
+def get_auth_expires_in(session: Dict[str, Any]) -> Optional[int]:
+    """当前会话记录的 Token 有效期（秒）；缺失或非正数返回 None。"""
+    expires_in = session.get(AUTH_EXPIRES_IN_KEY)
+    if isinstance(expires_in, int) and expires_in > 0:
+        return expires_in
+    return None
+
+
+def mark_cookie_invalidated(session: Dict[str, Any]) -> None:
+    """标记旧 Cookie 已作废（主动退出 / 强制改密成功）。
+
+    置 ``COOKIE_INVALIDATED_KEY``，阻止尚未真正删除的 Cookie 在后续 rerun 中
+    把旧 Token 恢复回 Session State。该标记保留到 Cookie 确认为空
+    （由 ``cookie_state.sync_token_cookie`` 清理）或用户重新登录时清除。
+    """
+    session[COOKIE_INVALIDATED_KEY] = True
 
 
 # ---------------------------------------------------------------------------

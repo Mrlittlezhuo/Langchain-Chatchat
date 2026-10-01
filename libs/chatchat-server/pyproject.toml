@@ -60,6 +60,7 @@ streamlit-chatbox = "1.1.12.post4"
 streamlit-modal = "0.1.0"
 streamlit-aggrid = "1.0.5"
 streamlit-extras = "0.4.2"
+extra-streamlit-components = "0.1.71"
 htbuilder = "0.6.2"
 xinference_client = { version = "^0.13.0", optional = true }
 zhipuai = { version = "^2.1.0", optional = true }
