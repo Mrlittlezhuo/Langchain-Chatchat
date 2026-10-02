@@ -2,9 +2,13 @@ from __future__ import annotations
 
 from typing import List, Literal
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
+from sqlalchemy.orm import Session
 
 from chatchat.settings import Settings
+from chatchat.server.auth.deps import require_password_changed
+from chatchat.server.db.models.user_model import UserModel
+from chatchat.server.db.session import get_db
 from chatchat.server.api_server.api_schemas import OpenAIChatInput, OpenAIChatOutput
 from chatchat.server.chat.file_chat import upload_temp_docs
 from chatchat.server.chat.kb_chat import kb_chat
@@ -29,7 +33,11 @@ from chatchat.server.utils import BaseResponse, ListResponse
 from chatchat.server.knowledge_base.kb_cache.faiss_cache import memo_faiss_pool
 
 
-kb_router = APIRouter(prefix="/knowledge_base", tags=["Knowledge Base Management"])
+kb_router = APIRouter(
+    prefix="/knowledge_base",
+    tags=["Knowledge Base Management"],
+    dependencies=[Depends(require_password_changed)],
+)
 
 
 @kb_router.post(
@@ -40,6 +48,8 @@ async def kb_chat_endpoint(
     param: str,
     body: OpenAIChatInput,
     request: Request,
+    user: UserModel = Depends(require_password_changed),
+    session: Session = Depends(get_db),
 ):
     # import rich
     # rich.print(body)
@@ -62,6 +72,9 @@ async def kb_chat_endpoint(
         prompt_name=extra.get("prompt_name", "default"),
         return_direct=extra.get("return_direct", False),
         request=request,
+        user=user,
+        session=session,
+        conversation_id=extra.get("conversation_id"),
     )
     return ret
 

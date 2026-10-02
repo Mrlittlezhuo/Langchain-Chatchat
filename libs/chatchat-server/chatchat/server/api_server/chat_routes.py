@@ -33,7 +33,11 @@ from .openai_routes import openai_request, OpenAIChatOutput
 
 logger = build_logger()
 
-chat_router = APIRouter(prefix="/chat", tags=["ChatChat 对话"])
+chat_router = APIRouter(
+    prefix="/chat",
+    tags=["ChatChat 对话"],
+    dependencies=[Depends(require_password_changed)],
+)
 
 # chat_router.post(
 #     "/chat",

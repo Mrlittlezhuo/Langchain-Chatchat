@@ -13,7 +13,8 @@ from chatchat.server.knowledge_base.utils import LOADER_DICT
 from chatchat.server.utils import get_config_models, get_config_platforms, get_default_llm, api_address
 from chatchat.webui_pages.dialogue.dialogue import (save_session, restore_session, rerun,
                                                     get_messages_history, upload_temp_docs,
-                                                    add_conv, del_conv, clear_conv)
+                                                    add_conv, del_conv, clear_conv,
+                                                    ensure_backend_conversation)
 from chatchat.webui_pages.utils import *
 
 
@@ -40,6 +41,7 @@ def kb_chat(api: ApiRequest):
     ctx.setdefault("llm_model", get_default_llm())
     ctx.setdefault("temperature", Settings.model_settings.TEMPERATURE)
     init_widgets()
+    conversation_id = ensure_backend_conversation(api)
 
     # sac on_change callbacks not working since st>=1.34
     if st.session_state.cur_conv_name != st.session_state.last_conv_name:
@@ -154,7 +156,6 @@ def kb_chat(api: ApiRequest):
                 on_change=on_conv_change,
             )
             chat_box.use_chat_name(conversation_name)
-            conversation_id = chat_box.context["uid"]
             if cols[0].button("新建", on_click=add_conv):
                 ...
             if cols[1].button("重命名"):
@@ -192,6 +193,7 @@ def kb_chat(api: ApiRequest):
             temperature=ctx.get("temperature"),
             prompt_name=prompt_name,
             return_direct=return_direct,
+            conversation_id=conversation_id,
         )
     
         api_url = api_address(is_public=True)

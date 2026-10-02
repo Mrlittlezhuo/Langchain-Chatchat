@@ -61,6 +61,10 @@ def file_exists(kb: str, selected_rows: List) -> Tuple[str, str]:
 
 
 def knowledge_base_page(api: ApiRequest, is_lite: bool = None):
+    st.warning(
+        "公共知识库为全局共享资源：新增/修改/删除/重建操作对全体用户立即生效，"
+        "并会记录操作者审计信息。请谨慎操作，删除前务必确认。"
+    )
     try:
         kb_list = {x["kb_name"]: x for x in get_kb_details()}
     except Exception as e:
@@ -321,8 +325,19 @@ def knowledge_base_page(api: ApiRequest, is_lite: bool = None):
                 use_container_width=True,
             ):
                 file_names = [row["file_name"] for row in selected_rows]
-                api.delete_kb_docs(kb, file_names=file_names, delete_content=True)
-                st.rerun()
+                st.session_state["pending_delete_file"] = (kb, file_names)
+
+            pending_file = st.session_state.get("pending_delete_file")
+            if pending_file is not None:
+                _kb, _names = pending_file
+                col1, col2 = st.columns(2)
+                if col1.button("确认删除", type="primary", key="confirm_delete_file"):
+                    api.delete_kb_docs(_kb, file_names=_names, delete_content=True)
+                    st.session_state.pop("pending_delete_file", None)
+                    st.rerun()
+                if col2.button("取消", key="cancel_delete_file"):
+                    st.session_state.pop("pending_delete_file", None)
+                    st.rerun()
 
         st.divider()
 
@@ -334,29 +349,51 @@ def knowledge_base_page(api: ApiRequest, is_lite: bool = None):
             use_container_width=True,
             type="primary",
         ):
-            with st.spinner("向量库重构中，请耐心等待，勿刷新或关闭页面。"):
-                empty = st.empty()
-                empty.progress(0.0, "")
-                for d in api.recreate_vector_store(
-                    kb,
-                    chunk_size=chunk_size,
-                    chunk_overlap=chunk_overlap,
-                    zh_title_enhance=zh_title_enhance,
-                ):
-                    if msg := check_error_msg(d):
-                        st.toast(msg)
-                    else:
-                        empty.progress(d["finished"] / d["total"], d["msg"])
+            st.session_state["pending_rebuild"] = kb
+
+        pending_rebuild = st.session_state.get("pending_rebuild")
+        if pending_rebuild is not None:
+            _rb = pending_rebuild
+            col1, col2 = st.columns(2)
+            if col1.button("确认重建", type="primary", key="confirm_rebuild"):
+                st.session_state.pop("pending_rebuild", None)
+                with st.spinner("向量库重构中，请耐心等待，勿刷新或关闭页面。"):
+                    empty = st.empty()
+                    empty.progress(0.0, "")
+                    for d in api.recreate_vector_store(
+                        _rb,
+                        chunk_size=chunk_size,
+                        chunk_overlap=chunk_overlap,
+                        zh_title_enhance=zh_title_enhance,
+                    ):
+                        if msg := check_error_msg(d):
+                            st.toast(msg)
+                        else:
+                            empty.progress(d["finished"] / d["total"], d["msg"])
+                st.rerun()
+            if col2.button("取消", key="cancel_rebuild"):
+                st.session_state.pop("pending_rebuild", None)
                 st.rerun()
 
         if cols[2].button(
             "删除知识库",
             use_container_width=True,
         ):
-            ret = api.delete_knowledge_base(kb)
-            st.toast(ret.get("msg", " "))
-            time.sleep(1)
-            st.rerun()
+            st.session_state["pending_delete_kb"] = kb
+
+        pending_kb = st.session_state.get("pending_delete_kb")
+        if pending_kb is not None:
+            _kb_del = pending_kb
+            col1, col2 = st.columns(2)
+            if col1.button("确认删除知识库", type="primary", key="confirm_delete_kb"):
+                st.session_state.pop("pending_delete_kb", None)
+                ret = api.delete_knowledge_base(_kb_del)
+                st.toast(ret.get("msg", " "))
+                time.sleep(1)
+                st.rerun()
+            if col2.button("取消", key="cancel_delete_kb"):
+                st.session_state.pop("pending_delete_kb", None)
+                st.rerun()
 
         with st.sidebar:
             keyword = st.text_input("查询关键字")

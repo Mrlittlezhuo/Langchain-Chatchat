@@ -4,17 +4,22 @@ import asyncio
 import base64
 import os
 import shutil
+import uuid
 from contextlib import asynccontextmanager
 from datetime import datetime
 from pathlib import Path
-from typing import AsyncGenerator, Dict, Iterable, Tuple
+from typing import AsyncGenerator, Dict, Iterable, List, Tuple
 
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import FileResponse
 from openai import AsyncClient
 from sse_starlette.sse import EventSourceResponse, ServerSentEvent
+from sqlalchemy.orm import Session
 
 from chatchat.settings import Settings
+from chatchat.server.auth.deps import require_password_changed
+from chatchat.server.db.models.user_model import OpenAIFileModel
+from chatchat.server.db.session import get_db
 from chatchat.server.utils import get_config_platforms, get_model_info, get_OpenAIClient
 from chatchat.utils import build_logger
 
@@ -230,31 +235,51 @@ def _get_file_id(
     purpose: str,
     created_at: int,
     filename: str,
+    owner_id: str,
 ) -> str:
+    """文件ID编码 owner/purpose/date/random/filename，避免同名文件互相覆盖。"""
     today = datetime.fromtimestamp(created_at).strftime("%Y-%m-%d")
-    return base64.urlsafe_b64encode(f"{purpose}/{today}/{filename}".encode()).decode()
+    return base64.urlsafe_b64encode(
+        f"{owner_id}/{purpose}/{today}/{uuid.uuid4().hex}/{filename}".encode()
+    ).decode()
 
 
 def _get_file_info(file_id: str) -> Dict:
-    splits = base64.urlsafe_b64decode(file_id).decode().split("/")
+    decoded = base64.urlsafe_b64decode(file_id).decode()
+    splits = decoded.split("/")
     created_at = -1
     size = -1
     file_path = _get_file_path(file_id)
     if os.path.isfile(file_path):
-        created_at = int(os.path.getmtime(file_path))
         size = os.path.getsize(file_path)
 
     return {
-        "purpose": splits[0],
+        "purpose": splits[1] if len(splits) > 1 else "assistants",
         "created_at": created_at,
-        "filename": splits[2],
+        "filename": splits[-1] if len(splits) > 3 else "",
         "bytes": size,
     }
 
 
 def _get_file_path(file_id: str) -> str:
-    file_id = base64.urlsafe_b64decode(file_id).decode()
-    return os.path.join(Settings.basic_settings.BASE_TEMP_DIR, "openai_files", file_id)
+    decoded = base64.urlsafe_b64decode(file_id).decode()
+    return os.path.join(Settings.basic_settings.BASE_TEMP_DIR, "openai_files", decoded)
+
+
+def _owned_file(session: Session, user, file_id: str) -> OpenAIFileModel:
+    """按 (id, owner_id) 校验归属；非本用户或不存在统一 404（不泄露存在性）。"""
+    row = (
+        session.query(OpenAIFileModel)
+        .filter(OpenAIFileModel.id == file_id, OpenAIFileModel.owner_id == user.id)
+        .one_or_none()
+    )
+    if row is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="file not found",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return row
 
 
 @openai_router.post("/files")
@@ -262,10 +287,12 @@ async def files(
     request: Request,
     file: UploadFile,
     purpose: str = "assistants",
+    user=Depends(require_password_changed),
+    session: Session = Depends(get_db),
 ) -> Dict:
     created_at = int(datetime.now().timestamp())
     file_id = _get_file_id(
-        purpose=purpose, created_at=created_at, filename=file.filename
+        purpose=purpose, created_at=created_at, filename=file.filename, owner_id=user.id
     )
     file_path = _get_file_path(file_id)
     file_dir = os.path.dirname(file_path)
@@ -273,6 +300,19 @@ async def files(
     with open(file_path, "wb") as fp:
         shutil.copyfileobj(file.file, fp)
     file.file.close()
+
+    row = (
+        session.query(OpenAIFileModel).filter(OpenAIFileModel.id == file_id).one_or_none()
+    )
+    if row is None:
+        row = OpenAIFileModel(id=file_id)
+        session.add(row)
+    row.owner_id = user.id
+    row.filename = file.filename
+    row.purpose = purpose
+    row.created_at = created_at
+    row.size = file.size
+    session.commit()
 
     return dict(
         id=file_id,
@@ -285,35 +325,50 @@ async def files(
 
 
 @openai_router.get("/files")
-def list_files(purpose: str) -> Dict[str, List[Dict]]:
-    file_ids = []
-    root_path = Path(Settings.basic_settings.BASE_TEMP_DIR) / "openai_files" / purpose
-    for dir, sub_dirs, files in os.walk(root_path):
-        dir = Path(dir).relative_to(root_path).as_posix()
-        for file in files:
-            file_id = base64.urlsafe_b64encode(
-                f"{purpose}/{dir}/{file}".encode()
-            ).decode()
-            file_ids.append(file_id)
+def list_files(
+    purpose: str,
+    user=Depends(require_password_changed),
+    session: Session = Depends(get_db),
+) -> Dict[str, List[Dict]]:
+    rows = (
+        session.query(OpenAIFileModel)
+        .filter(OpenAIFileModel.owner_id == user.id, OpenAIFileModel.purpose == purpose)
+        .all()
+    )
     return {
-        "data": [{**_get_file_info(x), "id": x, "object": "file"} for x in file_ids]
+        "data": [{**_get_file_info(r.id), "id": r.id, "object": "file"} for r in rows]
     }
 
 
 @openai_router.get("/files/{file_id}")
-def retrieve_file(file_id: str) -> Dict:
+def retrieve_file(
+    file_id: str,
+    user=Depends(require_password_changed),
+    session: Session = Depends(get_db),
+) -> Dict:
+    _owned_file(session, user, file_id)
     file_info = _get_file_info(file_id)
     return {**file_info, "id": file_id, "object": "file"}
 
 
 @openai_router.get("/files/{file_id}/content")
-def retrieve_file_content(file_id: str) -> Dict:
+def retrieve_file_content(
+    file_id: str,
+    user=Depends(require_password_changed),
+    session: Session = Depends(get_db),
+) -> Dict:
+    _owned_file(session, user, file_id)
     file_path = _get_file_path(file_id)
     return FileResponse(file_path)
 
 
 @openai_router.delete("/files/{file_id}")
-def delete_file(file_id: str) -> Dict:
+def delete_file(
+    file_id: str,
+    user=Depends(require_password_changed),
+    session: Session = Depends(get_db),
+) -> Dict:
+    row = _owned_file(session, user, file_id)
     file_path = _get_file_path(file_id)
     deleted = False
 
@@ -321,7 +376,9 @@ def delete_file(file_id: str) -> Dict:
         if os.path.isfile(file_path):
             os.remove(file_path)
             deleted = True
-    except:
+    except Exception:
         ...
 
+    session.delete(row)
+    session.commit()
     return {"id": file_id, "deleted": deleted, "object": "file"}

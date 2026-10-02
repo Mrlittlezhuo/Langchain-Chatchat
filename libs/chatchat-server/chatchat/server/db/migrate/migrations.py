@@ -6,6 +6,12 @@
 - v3（任务 003）：conversation 增加 ``owner_id``、``update_time`` 与
   ``(owner_id, update_time)`` 联合索引；旧行 ``owner_id`` 保持 NULL（由
   后续存量迁移任务归属），``update_time`` 回填为 ``create_time``。
+- v4（任务 006）：新增 OpenAI 兼容接口（/v1/files）聊天图片/附件归属表
+  ``openai_file``，使每张图片/附件由上传用户独占；仅 schema，不动既有文件、
+  会话、消息与知识库。
+- v5（任务 006）：为 ``owner_id IS NULL`` 的存量会话归属到一个明确的
+  遗留用户 ``__legacy__``（role=user, status=active,
+  must_change_password=1）；不修改 message 行、知识库表，不重建向量索引。
 
 已发布版本不得修改；后续业务 schema 变化追加新版本迁移函数。
 """
@@ -100,10 +106,109 @@ def _v3_conversation_owner(conn: Connection) -> None:
     ))
 
 
+_OPENAI_FILE_TABLE = """
+CREATE TABLE IF NOT EXISTS openai_file (
+    id VARCHAR(128) PRIMARY KEY,
+    owner_id VARCHAR(32) NOT NULL,
+    filename VARCHAR(255) NOT NULL,
+    purpose VARCHAR(64) NOT NULL DEFAULT 'assistants',
+    created_at INTEGER NOT NULL,
+    size INTEGER
+)
+"""
+
+
+def _v4_openai_file(conn: Connection) -> None:
+    """v4：新增 OpenAI 兼容接口（/v1/files）聊天图片/附件归属表。
+
+    - 每张图片/附件由上传用户独占；读取/列表/删除必须校验 owner_id。
+    - owner_id 来自服务端认证上下文，不接受客户端指定。
+    - 仅 schema，不创建/移动/删除既有文件；不修改 conversation/message
+      与知识库表；不重建向量索引。
+    - 重复执行安全：表已存在时不重复创建。
+    """
+    # DDL 已含 IF NOT EXISTS（幂等）
+    conn.execute(text(_OPENAI_FILE_TABLE))
+    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_openai_file_owner_id ON openai_file (owner_id)"))
+
+
+_LEGACY_USER_ID = "__legacy__"
+_LEGACY_USERNAME = "__legacy__"
+_LEGACY_DISPLAY = "__legacy__（升级前无归属的旧会话）"
+
+
+def _v5_legacy_conversation_owner(conn: Connection) -> None:
+    """v5：为 owner_id 为 NULL 的存量会话归属到明确的遗留用户。
+
+    - 幂等：``conversation`` 不存在时跳过；无 NULL 行时不新建用户；
+      遗留用户已存在（按 username）时复用其 id。
+    - 数据保留：只 UPDATE conversation.owner_id，不修改 message 行；
+      会话与消息数量升级前后不变。
+    - 不移动知识库目录，不重建公共向量索引，不加 owner/ACL。
+    - 失败即回滚且版本不记录（由迁移框架保证）。
+    """
+    from sqlalchemy import inspect
+
+    inspector = inspect(conn)
+    if "conversation" not in inspector.get_table_names():
+        # 业务表尚未创建；由 create_all 用新版模型创建带 owner_id 的表
+        return
+
+    existing_cols = {c["name"] for c in inspector.get_columns("conversation")}
+    if "owner_id" not in existing_cols:
+        # 缺少 owner_id（未跑 v3），无从归属；由 v3 先补齐
+        return
+
+    # 是否仍有 NULL 归属的旧会话
+    null_count = conn.execute(
+        text("SELECT COUNT(*) FROM conversation WHERE owner_id IS NULL")
+    ).scalar()
+    if not null_count:
+        # 无存量需要归属；不新建用户
+        return
+
+    # 取（或创建）遗留用户
+    row = conn.execute(
+        text("SELECT id FROM user_account WHERE username = :u"),
+        {"u": _LEGACY_USERNAME},
+    ).fetchone()
+    if row is None:
+        conn.execute(
+            text(
+                """
+                INSERT INTO user_account (
+                    id, username, display_name, password_hash,
+                    role, status, must_change_password, auth_version,
+                    create_time, update_time
+                ) VALUES (
+                    :id, :u, :d, :h, 'user', 'active', 1, 1,
+                    CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+                )
+                """
+            ),
+            {
+                "id": _LEGACY_USER_ID,
+                "u": _LEGACY_USERNAME,
+                "d": _LEGACY_DISPLAY,
+                "h": "no-hash-set",
+            },
+        )
+        legacy_id = _LEGACY_USER_ID
+    else:
+        legacy_id = row[0]
+
+    conn.execute(
+        text("UPDATE conversation SET owner_id = :o WHERE owner_id IS NULL"),
+        {"o": legacy_id},
+    )
+
+
 _MIGRATIONS = [
     (1, "baseline", _v1_baseline),
     (2, "user_account", _v2_user_account),
     (3, "conversation_owner", _v3_conversation_owner),
+    (4, "openai_file", _v4_openai_file),
+    (5, "legacy_conversation_owner", _v5_legacy_conversation_owner),
 ]
 
 

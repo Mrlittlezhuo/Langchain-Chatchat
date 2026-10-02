@@ -420,6 +420,14 @@ def test_chat_other_user_conversation_id_404_before_model(client, temp_user_db, 
 # ---------------------------------------------------------------------------
 
 
+def test_create_conversation_rejects_empty_owner(temp_user_db):
+    from chatchat.server.db.repository import create_conversation
+
+    with temp_user_db["Session"]() as session:
+        with pytest.raises(ValueError, match="owner_id"):
+            create_conversation(session, "", "llm_chat", "invalid")
+
+
 def test_add_and_update_message_same_conversation(temp_user_db, secret):
     _, a = _headers_of(temp_user_db, "alice")
     S = temp_user_db["Session"]

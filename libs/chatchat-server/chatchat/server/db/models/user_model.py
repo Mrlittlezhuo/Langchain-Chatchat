@@ -1,6 +1,13 @@
 from datetime import datetime
-
-from sqlalchemy import Boolean, CheckConstraint, Column, DateTime, Integer, String
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+)
 
 from chatchat.server.db.base import Base
 
@@ -80,4 +87,37 @@ class UserModel(Base):
         )
 
 
-__all__ = ["UserModel"]
+__all__ = ["UserModel", "OpenAIFileModel"]
+
+
+class OpenAIFileModel(Base):
+    """
+    OpenAI 兼容 ``/v1/files`` 接口（聊天图片/附件）的归属记录。
+
+    每张图片/附件由上传用户独占：读取、列表、删除都必须校验
+    ``owner_id``，用户 A 无法获取用户 B 的附件。物理路径仍位于
+    ``BASE_TEMP_DIR/openai_files`` 下按用户分子目录，但权限以本表为
+    事实来源（owner_id 来自服务端认证上下文）。
+    """
+
+    __tablename__ = "openai_file"
+    id = Column(String(128), primary_key=True, comment="文件ID")
+    owner_id = Column(
+        String(32),
+        ForeignKey("user_account.id"),
+        nullable=False,
+        index=True,
+        comment="所属用户ID（上传用户，服务端写入）",
+    )
+    filename = Column(String(255), nullable=False, comment="文件名（含扩展名）")
+    purpose = Column(
+        String(64), nullable=False, default="assistants", comment="用途（OpenAI purpose）"
+    )
+    created_at = Column(Integer, nullable=False, comment="上传时间戳（秒）")
+    size = Column(Integer, nullable=True, comment="文件大小（字节）")
+
+    def __repr__(self):
+        return (
+            f"<OpenAIFile(id='{self.id}', owner_id='{self.owner_id}', "
+            f"filename='{self.filename}', purpose='{self.purpose}')>"
+        )

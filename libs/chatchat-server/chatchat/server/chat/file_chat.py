@@ -5,15 +5,21 @@ import os
 from typing import AsyncIterable, List, Optional
 
 import nest_asyncio
-from fastapi import Body, File, Form, UploadFile
+from fastapi import Body, Depends, File, Form, UploadFile
 from langchain.callbacks import AsyncIteratorCallbackHandler
 from langchain.chains import LLMChain
 from langchain.prompts.chat import ChatPromptTemplate
 from sse_starlette.sse import EventSourceResponse
 
 from chatchat.settings import Settings
+from chatchat.server.auth.deps import require_password_changed
 from chatchat.server.chat.utils import History
+from chatchat.server.db.models.user_model import UserModel
 from chatchat.server.knowledge_base.kb_cache.faiss_cache import memo_faiss_pool
+from chatchat.server.knowledge_base.temp_files import (
+    assert_temp_owner,
+    temp_file_ownership,
+)
 from chatchat.server.knowledge_base.utils import KnowledgeFile
 from chatchat.server.utils import (
     BaseResponse,
@@ -79,17 +85,22 @@ def upload_temp_docs(
     chunk_size: int = Form(Settings.kb_settings.CHUNK_SIZE, description="知识库中单段文本最大长度"),
     chunk_overlap: int = Form(Settings.kb_settings.OVERLAP_SIZE, description="知识库中相邻文本重合长度"),
     zh_title_enhance: bool = Form(Settings.kb_settings.ZH_TITLE_ENHANCE, description="是否开启中文标题加强"),
+    user: UserModel = Depends(require_password_changed),
 ) -> BaseResponse:
     """
     将文件保存到临时目录，并进行向量化。
     返回临时目录名称作为ID，同时也是临时向量库的ID。
     """
     if prev_id is not None:
+        # 复用已有临时目录前，先校验它属于当前用户（防止写入/重归属他人目录）
+        assert_temp_owner(user, prev_id)
         memo_faiss_pool.pop(prev_id)
 
     failed_files = []
     documents = []
     path, id = get_temp_dir(prev_id)
+    # 记录属主：owner 来自服务端认证上下文，不接受客户端指定
+    temp_file_ownership.register(id, user)
     for success, file, msg, docs in _parse_files_in_thread(
         files=files,
         dir=path,
@@ -140,7 +151,10 @@ async def file_chat(
         "default",
         description="使用的prompt模板名称(在 prompt_settings.yaml 中配置)",
     ),
+    user: UserModel = Depends(require_password_changed),
 ):
+    # 先校验临时向量库属于当前用户；非属主/不存在统一 404（不泄露存在性）
+    assert_temp_owner(user, knowledge_id)
     if knowledge_id not in memo_faiss_pool.keys():
         # return BaseResponse(code=404, msg=f"未找到临时知识库 {knowledge_id}，请先上传文件")
         return BaseResponse(

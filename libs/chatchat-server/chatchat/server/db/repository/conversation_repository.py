@@ -26,6 +26,8 @@ def create_conversation(
     conversation_id: str | None = None,
 ) -> str:
     """新增会话；owner 由服务端写入，不接受客户端指定。"""
+    if not owner_id:
+        raise ValueError("owner_id 不能为空")
     if not conversation_id:
         conversation_id = uuid.uuid4().hex
     now = datetime.now()

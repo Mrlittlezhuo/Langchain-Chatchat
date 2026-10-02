@@ -130,11 +130,6 @@ def clear_private_caches() -> None:
     return None
 
 
-def get_image_file_url(upload_file: dict) -> str:
-    file_id = upload_file.get("id")
-    return f"{api_address(True)}/v1/files/{file_id}/content"
-
-
 # ---------------------------------------------------------------------------
 # 后端会话为事实来源（任务 7.3）：会话列表/当前会话/历史均以后端为准。
 # ---------------------------------------------------------------------------
@@ -385,6 +380,7 @@ def dialogue_page(
 
             # 用于图片对话、文生图的图片
             upload_image = None
+            upload_image_data_url = None
             def on_upload_file_change():
                 if f := st.session_state.get("upload_image"):
                     name = ".".join(f.name.split(".")[:-1]) + ".png"
@@ -406,8 +402,13 @@ def dialogue_page(
                 st.image(cur_image[1])
                 buffer = io.BytesIO()
                 cur_image[1].save(buffer, format="png")
+                image_bytes = buffer.getvalue()
+                upload_image_data_url = (
+                    "data:image/png;base64,"
+                    + base64.b64encode(image_bytes).decode("ascii")
+                )
                 upload_image = upload_image_file(
-                    cur_image[0], buffer.getvalue(), st.session_state.get(auth_state.TOKEN_KEY)
+                    cur_image[0], image_bytes, st.session_state.get(auth_state.TOKEN_KEY)
                 )
 
         with tab2:
@@ -503,7 +504,7 @@ def dialogue_page(
         is_vision_chat = upload_image and not selected_tools
 
         if is_vision_chat: # multimodal chat
-            chat_box.user_say([Image(get_image_file_url(upload_image), width=100), Markdown(prompt)])
+            chat_box.user_say([Image(upload_image_data_url, width=100), Markdown(prompt)])
         else:
             chat_box.user_say(prompt)
         if files_upload:
@@ -535,7 +536,7 @@ def dialogue_page(
         if is_vision_chat: # multimodal chat
             content = [
                 {"type": "text", "text": prompt},
-                {"type": "image_url", "image_url": {"url": get_image_file_url(upload_image)}}
+                {"type": "image_url", "image_url": {"url": upload_image_data_url}}
             ]
             messages = [{"role": "user", "content": content}]
         else:

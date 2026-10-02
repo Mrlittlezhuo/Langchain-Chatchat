@@ -4,12 +4,14 @@ import os
 import urllib
 from typing import Dict, List
 
-from fastapi import Body, File, Form, Query, UploadFile
+from fastapi import Body, Depends, File, Form, Query, UploadFile
 from fastapi.responses import FileResponse
 from langchain.docstore.document import Document
 from sse_starlette import EventSourceResponse
 
 from chatchat.settings import Settings
+from chatchat.server.auth.deps import require_password_changed
+from chatchat.server.db.models.user_model import UserModel
 from chatchat.server.db.repository.knowledge_file_repository import get_file_detail
 from chatchat.server.knowledge_base.kb_service.base import (
     KBServiceFactory,
@@ -24,6 +26,8 @@ from chatchat.server.knowledge_base.utils import (
     validate_kb_name,
 )
 from chatchat.server.knowledge_base.kb_cache.faiss_cache import memo_faiss_pool
+from chatchat.server.knowledge_base.temp_files import assert_temp_owner
+from chatchat.server.knowledge_base.kb_api import log_kb_operation
 from chatchat.server.utils import (
     BaseResponse,
     ListResponse,
@@ -39,8 +43,11 @@ logger = build_logger()
 def search_temp_docs(knowledge_id: str = Body(..., description="知识库 ID", examples=["example_id"]),
                      query: str = Body("", description="用户输入", examples=["你好"]),
                      top_k: int = Body(..., description="返回的文档数量", examples=[5]),
-                     score_threshold: float = Body(..., description="分数阈值", examples=[0.8])) -> List[Dict]:
+                     score_threshold: float = Body(..., description="分数阈值", examples=[0.8]),
+                     user: UserModel = Depends(require_password_changed)) -> List[Dict]:
     '''从临时 FAISS 知识库中检索文档，用于文件对话'''
+    # 校验临时向量库属于当前用户；非属主/不存在统一 404
+    assert_temp_owner(user, knowledge_id)
     with memo_faiss_pool.acquire(knowledge_id) as vs:
         docs = vs.similarity_search_with_score(
             query, k=top_k, score_threshold=score_threshold
@@ -168,6 +175,7 @@ def upload_docs(
         zh_title_enhance: bool = Form(Settings.kb_settings.ZH_TITLE_ENHANCE, description="是否开启中文标题加强"),
         docs: str = Form("", description="自定义的docs，需要转为json字符串"),
         not_refresh_vs_cache: bool = Form(False, description="暂不保存向量库（用于FAISS）"),
+        user: UserModel = Depends(require_password_changed),
 ) -> BaseResponse:
     """
     API接口：上传文件，并/或向量化
@@ -205,11 +213,16 @@ def upload_docs(
             zh_title_enhance=zh_title_enhance,
             docs=docs,
             not_refresh_vs_cache=True,
+            user=user,
         )
         failed_files.update(result.data["failed_files"])
         if not not_refresh_vs_cache:
             kb.save_vector_store()
 
+    log_kb_operation(
+        user, "upload", knowledge_base_name,
+        detail=", ".join(file_names) if file_names else "(空)",
+    )
     return BaseResponse(
         code=200, msg="文件上传与向量化完成", data={"failed_files": failed_files}
     )
@@ -220,6 +233,7 @@ def delete_docs(
         file_names: List[str] = Body(..., examples=[["file_name.md", "test.txt"]]),
         delete_content: bool = Body(False),
         not_refresh_vs_cache: bool = Body(False, description="暂不保存向量库（用于FAISS）"),
+        user: UserModel = Depends(require_password_changed),
 ) -> BaseResponse:
     if not validate_kb_name(knowledge_base_name):
         return BaseResponse(code=403, msg="Don't attack me")
@@ -247,6 +261,10 @@ def delete_docs(
     if not not_refresh_vs_cache:
         kb.save_vector_store()
 
+    log_kb_operation(
+        user, "delete_docs", knowledge_base_name,
+        detail=", ".join(file_names) if file_names else "(空)",
+    )
     return BaseResponse(
         code=200, msg=f"文件删除完成", data={"failed_files": failed_files}
     )
@@ -257,6 +275,7 @@ def update_info(
             ..., description="知识库名称", examples=["samples"]
         ),
         kb_info: str = Body(..., description="知识库介绍", examples=["这是一个知识库"]),
+        user: UserModel = Depends(require_password_changed),
 ):
     if not validate_kb_name(knowledge_base_name):
         return BaseResponse(code=403, msg="Don't attack me")
@@ -266,6 +285,7 @@ def update_info(
         return BaseResponse(code=404, msg=f"未找到知识库 {knowledge_base_name}")
     kb.update_info(kb_info)
 
+    log_kb_operation(user, "update_info", knowledge_base_name)
     return BaseResponse(code=200, msg=f"知识库介绍修改完成", data={"kb_info": kb_info})
 
 
@@ -282,6 +302,7 @@ def update_docs(
         override_custom_docs: bool = Body(False, description="是否覆盖之前自定义的docs"),
         docs: str = Body("", description="自定义的docs，需要转为json字符串"),
         not_refresh_vs_cache: bool = Body(False, description="暂不保存向量库（用于FAISS）"),
+        user: UserModel = Depends(require_password_changed),
 ) -> BaseResponse:
     """
     更新知识库文档
@@ -350,6 +371,10 @@ def update_docs(
     if not not_refresh_vs_cache:
         kb.save_vector_store()
 
+    log_kb_operation(
+        user, "update", knowledge_base_name,
+        detail=", ".join(file_names) if file_names else "(空)",
+    )
     return BaseResponse(
         code=200, msg=f"更新文档完成", data={"failed_files": failed_files}
     )
@@ -406,6 +431,7 @@ def recreate_vector_store(
         chunk_overlap: int = Body(Settings.kb_settings.OVERLAP_SIZE, description="知识库中相邻文本重合长度"),
         zh_title_enhance: bool = Body(Settings.kb_settings.ZH_TITLE_ENHANCE, description="是否开启中文标题加强"),
         not_refresh_vs_cache: bool = Body(False, description="暂不保存向量库（用于FAISS）"),
+        user: UserModel = Depends(require_password_changed),
 ):
     """
     recreate vector store from the content.
@@ -472,4 +498,5 @@ def recreate_vector_store(
             logger.warning("streaming progress has been interrupted by user.")
             return
 
+    log_kb_operation(user, "recreate_vector_store", knowledge_base_name)
     return EventSourceResponse(output())

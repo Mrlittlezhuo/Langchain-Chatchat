@@ -4,7 +4,7 @@ import asyncio, json
 import uuid
 from typing import AsyncIterable, List, Optional, Literal
 
-from fastapi import Body, Request
+from fastapi import Body, Depends, HTTPException, Request, status
 from fastapi.concurrency import run_in_threadpool
 from sse_starlette.sse import EventSourceResponse
 from langchain.callbacks import AsyncIteratorCallbackHandler
@@ -12,6 +12,17 @@ from langchain.prompts.chat import ChatPromptTemplate
 
 
 from chatchat.settings import Settings
+from chatchat.server.auth.deps import require_password_changed
+from chatchat.server.db.models.user_model import UserModel
+from chatchat.server.db.session import get_db
+from chatchat.server.db.repository import (
+    add_message,
+    create_conversation,
+    get_owned_conversation,
+    update_message,
+)
+from chatchat.server.knowledge_base.temp_files import assert_temp_owner
+from sqlalchemy.orm import Session
 from chatchat.server.agent.tools_factory.search_internet import search_engine
 from chatchat.server.api_server.api_schemas import OpenAIChatOutput
 from chatchat.server.chat.utils import History
@@ -58,13 +69,39 @@ async def kb_chat(query: str = Body(..., description="用户输入", examples=["
                     description="使用的prompt模板名称(在prompt_settings.yaml中配置)"
                 ),
                 return_direct: bool = Body(False, description="直接返回检索结果，不送入 LLM"),
+                conversation_id: Optional[str] = Body(None, description="当前用户会话 ID"),
                 request: Request = None,
+                user: UserModel = Depends(require_password_changed),
+                session: Session = Depends(get_db),
                 ):
     if mode == "local_kb":
         kb = KBServiceFactory.get_service_by_name(kb_name)
         if kb is None:
             return BaseResponse(code=404, msg=f"未找到知识库 {kb_name}")
-    
+    elif mode == "temp_kb":
+        assert_temp_owner(user, kb_name)
+
+    if conversation_id:
+        if get_owned_conversation(session, conversation_id, user.id) is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="会话不存在或无权访问",
+            )
+    else:
+        conversation_id = create_conversation(
+            session,
+            owner_id=user.id,
+            chat_type="kb_chat",
+            name=(query or "")[:50],
+        )
+    message_id = add_message(
+        session=session,
+        conversation_id=conversation_id,
+        owner_id=user.id,
+        chat_type="kb_chat",
+        query=query,
+    )
+
     async def knowledge_base_chat_iterator() -> AsyncIterable[str]:
         try:
             nonlocal history, prompt_name, max_tokens
@@ -92,7 +129,8 @@ async def kb_chat(query: str = Body(..., description="用户输入", examples=["
                                                 kb_name,
                                                 query=query,
                                                 top_k=top_k,
-                                                score_threshold=score_threshold)
+                                                score_threshold=score_threshold,
+                                                user=user)
                 source_documents = format_reference(kb_name, docs, api_address(is_public=True))
             elif mode == "search_engine":
                 result = await run_in_threadpool(search_engine, query, top_k, kb_name)
@@ -111,6 +149,13 @@ async def kb_chat(query: str = Body(..., description="用户输入", examples=["
             # ))
             # rich.print(docs)
             if return_direct:
+                update_message(
+                    session=session,
+                    message_id=message_id,
+                    owner_id=user.id,
+                    response="",
+                    metadata={"docs": source_documents},
+                )
                 yield OpenAIChatOutput(
                     id=f"chat{uuid.uuid4()}",
                     model=None,
@@ -119,6 +164,8 @@ async def kb_chat(query: str = Body(..., description="用户输入", examples=["
                     role="assistant",
                     finish_reason="stop",
                     docs=source_documents,
+                    message_id=message_id,
+                    conversation_id=conversation_id,
                 ) .model_dump_json()
                 return
 
@@ -181,6 +228,7 @@ async def kb_chat(query: str = Body(..., description="用户输入", examples=["
                 source_documents.append(f"<span style='color:red'>未找到相关文档,该回答为大模型自身能力解答！</span>")
 
             if stream:
+                answer = ""
                 # yield documents first
                 ret = OpenAIChatOutput(
                     id=f"chat{uuid.uuid4()}",
@@ -189,16 +237,21 @@ async def kb_chat(query: str = Body(..., description="用户输入", examples=["
                     role="assistant",
                     model=model,
                     docs=source_documents,
+                    message_id=message_id,
+                    conversation_id=conversation_id,
                 )
                 yield ret.model_dump_json()
 
                 async for token in callback.aiter():
+                    answer += token
                     ret = OpenAIChatOutput(
                         id=f"chat{uuid.uuid4()}",
                         object="chat.completion.chunk",
                         content=token,
                         role="assistant",
                         model=model,
+                        message_id=message_id,
+                        conversation_id=conversation_id,
                     )
                     yield ret.model_dump_json()
             else:
@@ -211,9 +264,18 @@ async def kb_chat(query: str = Body(..., description="用户输入", examples=["
                     content=answer,
                     role="assistant",
                     model=model,
+                    message_id=message_id,
+                    conversation_id=conversation_id,
                 )
                 yield ret.model_dump_json()
             await task
+            update_message(
+                session=session,
+                message_id=message_id,
+                owner_id=user.id,
+                response=answer,
+                metadata={"docs": source_documents},
+            )
         except asyncio.exceptions.CancelledError:
             logger.warning("streaming progress has been interrupted by user.")
             return
