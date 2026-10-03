@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import asyncio, json
+import asyncio
 import uuid
 from typing import AsyncIterable, List, Optional, Literal
 
@@ -29,7 +29,10 @@ from chatchat.server.api_server.api_schemas import OpenAIChatOutput
 from chatchat.server.chat.utils import History
 from chatchat.server.knowledge_base.kb_service.base import KBServiceFactory
 from chatchat.server.knowledge_base.kb_doc_api import search_docs, search_temp_docs
-from chatchat.server.knowledge_base.utils import format_reference
+from chatchat.server.knowledge_base.utils import (
+    build_references,
+    format_reference_markdown,
+)
 from chatchat.server.utils import (wrap_done, get_ChatOpenAI, get_default_llm,
                                    BaseResponse, get_prompt_template, build_logger,
                                    check_embed_model, api_address
@@ -104,6 +107,13 @@ async def kb_chat(query: str = Body(..., description="用户输入", examples=["
     )
 
     async def knowledge_base_chat_iterator() -> AsyncIterable[str]:
+        reference_metadata = {
+            "mode": mode,
+            "knowledge_base": kb_name,
+            "retrieval_status": "pending",
+            "references": [],
+            "docs": [],
+        }
         try:
             nonlocal history, prompt_name, max_tokens
 
@@ -142,7 +152,9 @@ async def kb_chat(query: str = Body(..., description="用户输入", examples=["
                                                 score_threshold=score_threshold,
                                                 file_name="",
                                                 metadata={})
-                source_documents = format_reference(kb_name, docs, api_address(is_public=True))
+                references = build_references(
+                    kb_name, docs, api_address(is_public=True)
+                )
             elif mode == "temp_kb":
                 ok, msg = check_embed_model()
                 if not ok:
@@ -153,14 +165,43 @@ async def kb_chat(query: str = Body(..., description="用户输入", examples=["
                                                 top_k=top_k,
                                                 score_threshold=score_threshold,
                                                 user=user)
-                source_documents = format_reference(kb_name, docs, api_address(is_public=True))
+                references = build_references(
+                    kb_name, docs, api_address(is_public=True)
+                )
             elif mode == "search_engine":
                 result = await run_in_threadpool(search_engine, query, top_k, kb_name)
                 docs = [x.dict() for x in result.get("docs", [])]
-                source_documents = [f"""出处 [{i + 1}] [{d['metadata']['filename']}]({d['metadata']['source']}) \n\n{d['page_content']}\n\n""" for i,d in enumerate(docs)]
+                references = []
+                for index, doc in enumerate(docs, start=1):
+                    metadata = doc.get("metadata") or {}
+                    references.append(
+                        {
+                            "index": index,
+                            "knowledge_base": kb_name,
+                            "file_name": metadata.get("filename") or "网页来源",
+                            "url": metadata.get("source") or "",
+                            "content": doc.get("page_content") or "",
+                            "score": doc.get("score"),
+                            "page": (
+                                metadata.get("page")
+                                if metadata.get("page") is not None
+                                else metadata.get("page_number")
+                            ),
+                        }
+                    )
             else:
                 docs = []
-                source_documents = []
+                references = []
+            source_documents = [
+                format_reference_markdown(reference) for reference in references
+            ]
+            reference_metadata.update(
+                {
+                    "retrieval_status": "matched" if references else "empty",
+                    "references": references,
+                    "docs": source_documents,
+                }
+            )
             # import rich
             # rich.print(dict(
             #     mode=mode,
@@ -176,7 +217,7 @@ async def kb_chat(query: str = Body(..., description="用户输入", examples=["
                     message_id=message_id,
                     owner_id=user.id,
                     response="",
-                    metadata={"docs": source_documents},
+                    metadata=reference_metadata,
                 )
                 yield OpenAIChatOutput(
                     id=f"chat{uuid.uuid4()}",
@@ -186,9 +227,11 @@ async def kb_chat(query: str = Body(..., description="用户输入", examples=["
                     role="assistant",
                     finish_reason="stop",
                     docs=source_documents,
+                    references=references,
+                    retrieval_status=reference_metadata["retrieval_status"],
                     message_id=message_id,
                     conversation_id=conversation_id,
-                ) .model_dump_json()
+                ).model_dump_json()
                 return
 
             callback = AsyncIteratorCallbackHandler()
@@ -229,7 +272,15 @@ async def kb_chat(query: str = Body(..., description="用户输入", examples=["
             #                                              query=query)
             #     print("------------after rerank------------------")
             #     print(docs)
-            context = "\n\n".join([doc["page_content"] for doc in docs])
+            context = "\n\n".join(
+                f"【资料 {index}】\n{doc.get('page_content') or ''}"
+                for index, doc in enumerate(docs, start=1)
+            )
+            if context:
+                context = (
+                    "请在使用资料内容时，在对应表述后标注资料编号，如 [1]。\n\n"
+                    + context
+                )
 
             if len(docs) == 0:  # 如果没有找到相关文档，使用empty模板
                 prompt_name = "empty"
@@ -256,7 +307,10 @@ async def kb_chat(query: str = Body(..., description="用户输入", examples=["
             )
 
             if len(source_documents) == 0:  # 没有找到相关文档
-                source_documents.append(f"<span style='color:red'>未找到相关文档,该回答为大模型自身能力解答！</span>")
+                source_documents.append(
+                    "未检索到符合条件的资料；以下回答来自模型自身知识。"
+                )
+                reference_metadata["docs"] = source_documents
 
             if stream:
                 answer = ""
@@ -268,6 +322,8 @@ async def kb_chat(query: str = Body(..., description="用户输入", examples=["
                     role="assistant",
                     model=model,
                     docs=source_documents,
+                    references=references,
+                    retrieval_status=reference_metadata["retrieval_status"],
                     message_id=message_id,
                     conversation_id=conversation_id,
                 )
@@ -297,6 +353,9 @@ async def kb_chat(query: str = Body(..., description="用户输入", examples=["
                     model=model,
                     message_id=message_id,
                     conversation_id=conversation_id,
+                    docs=source_documents,
+                    references=references,
+                    retrieval_status=reference_metadata["retrieval_status"],
                 )
                 yield ret.model_dump_json()
             await task
@@ -305,14 +364,38 @@ async def kb_chat(query: str = Body(..., description="用户输入", examples=["
                 message_id=message_id,
                 owner_id=user.id,
                 response=answer,
-                metadata={"docs": source_documents},
+                metadata=reference_metadata,
             )
         except asyncio.exceptions.CancelledError:
             logger.warning("streaming progress has been interrupted by user.")
             return
         except Exception as e:
             logger.error(f"error in knowledge chat: {e}")
-            yield {"data": json.dumps({"error": str(e)})}
+            reference_metadata.update(
+                {"retrieval_status": "error", "error": str(e)}
+            )
+            try:
+                update_message(
+                    session=session,
+                    message_id=message_id,
+                    owner_id=user.id,
+                    response="",
+                    metadata=reference_metadata,
+                )
+            except Exception:
+                pass
+            yield OpenAIChatOutput(
+                id=f"chat{uuid.uuid4()}",
+                object="chat.completion.chunk",
+                content="",
+                role="assistant",
+                model=model,
+                finish_reason="stop",
+                error=str(e),
+                retrieval_status="error",
+                message_id=message_id,
+                conversation_id=conversation_id,
+            ).model_dump_json()
             return
 
     if stream:

@@ -459,31 +459,67 @@ def files2docs_in_thread(
         yield result
 
 
-def format_reference(kb_name: str, docs: List[Dict], api_base_url: str="") -> List[Dict]:
-    '''
-    将知识库检索结果格式化为参考文档的格式
-    '''
+def build_references(
+    kb_name: str, docs: List[Dict], api_base_url: str = ""
+) -> List[Dict]:
+    """把检索结果转换为可持久化、可供不同客户端展示的结构化引用。"""
     from chatchat.server.utils import api_address
-    api_base_url = api_base_url or api_address(is_public=True)
 
-    source_documents = []
-    for inum, doc in enumerate(docs):
-        filename = doc.get("metadata", {}).get("source")
+    api_base_url = api_base_url or api_address(is_public=True)
+    api_base_url = api_base_url.strip(" /")
+    references: List[Dict] = []
+    for index, doc in enumerate(docs or [], start=1):
+        metadata = doc.get("metadata") or {}
+        filename = metadata.get("source") or metadata.get("filename") or "未知来源"
         parameters = urlencode(
             {
                 "knowledge_base_name": kb_name,
                 "file_name": filename,
             }
         )
-        api_base_url = api_base_url.strip(" /")
-        url = (
-            f"{api_base_url}/knowledge_base/download_doc?" + parameters
+        score = doc.get("score")
+        # DocumentWithVSId 的默认 3.0 不是实际检索分数，不对用户展示。
+        if score == 3.0:
+            score = None
+        references.append(
+            {
+                "index": index,
+                "knowledge_base": kb_name,
+                "file_name": str(filename),
+                "url": f"{api_base_url}/knowledge_base/download_doc?{parameters}",
+                "content": str(doc.get("page_content") or ""),
+                "score": score,
+                "page": (
+                    metadata.get("page")
+                    if metadata.get("page") is not None
+                    else metadata.get("page_number")
+                ),
+            }
         )
-        page_content = doc.get("page_content")
-        ref = f"""出处 [{inum + 1}] [{filename}]({url}) \n\n{page_content}\n\n"""
-        source_documents.append(ref)
-    
-    return source_documents
+    return references
+
+
+def format_reference_markdown(reference: Dict) -> str:
+    """把一条结构化引用渲染为兼容现有客户端的 Markdown。"""
+    index = reference.get("index", "")
+    filename = reference.get("file_name") or "未知来源"
+    url = reference.get("url") or ""
+    title = f"[{filename}]({url})" if url else str(filename)
+    details = []
+    if reference.get("page") is not None:
+        details.append(f"页码 {reference['page']}")
+    if isinstance(reference.get("score"), (int, float)):
+        details.append(f"检索分数 {reference['score']:.4f}")
+    suffix = f"（{'，'.join(details)}）" if details else ""
+    return f"出处 [{index}] {title}{suffix}\n\n{reference.get('content') or ''}\n"
+
+
+def format_reference(kb_name: str, docs: List[Dict], api_base_url: str = "") -> List[str]:
+    """兼容旧客户端：返回 Markdown 引用列表。"""
+    return [
+        format_reference_markdown(reference)
+        for reference in build_references(kb_name, docs, api_base_url)
+    ]
 
 
 if __name__ == "__main__":

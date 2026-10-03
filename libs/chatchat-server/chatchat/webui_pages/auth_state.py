@@ -35,7 +35,7 @@ LAST_CONVERSATION_ID_KEY = "last_conversation_id"
 LOADED_CONVERSATION_IDS_KEY = "loaded_conversation_ids"
 LOADED_CONVERSATION_ID_KEY = "loaded_conversation_id"
 
-# 旧 name 主键（kb_chat 仍使用；统一清理时一并清除）
+# 旧 name 主键（兼容旧版本；统一清理时一并清除）
 CUR_CONV_NAME_KEY = "cur_conv_name"
 LAST_CONV_NAME_KEY = "last_conv_name"
 
@@ -68,6 +68,11 @@ SE_TOP_K_KEY = "se_top_k"
 SCORE_THRESHOLD_KEY = "score_threshold"
 SEARCH_ENGINE_KEY = "search_engine"
 RETURN_DIRECT_KEY = "return_direct"
+RAG_CONVERSATION_LIST_KEY = "rag_conversation_list"
+RAG_CURRENT_CONVERSATION_KEY = "rag_current_conversation_id"
+RAG_LOADED_CONVERSATION_KEY = "rag_loaded_conversation_id"
+RAG_CONVERSATION_SELECTOR_KEY = "rag_conversation_selector"
+RAG_PENDING_CONVERSATION_KEY = "rag_pending_conversation_id"
 
 #: 退出 / 401 时必须清除的所有用户私有键（最小集合）。
 PRIVATE_STATE_KEYS: List[str] = [
@@ -103,6 +108,11 @@ PRIVATE_STATE_KEYS: List[str] = [
     SCORE_THRESHOLD_KEY,
     SEARCH_ENGINE_KEY,
     RETURN_DIRECT_KEY,
+    RAG_CONVERSATION_LIST_KEY,
+    RAG_CURRENT_CONVERSATION_KEY,
+    RAG_LOADED_CONVERSATION_KEY,
+    RAG_CONVERSATION_SELECTOR_KEY,
+    RAG_PENDING_CONVERSATION_KEY,
 ]
 
 

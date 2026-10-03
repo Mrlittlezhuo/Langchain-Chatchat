@@ -10,7 +10,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
@@ -53,6 +53,7 @@ class MessageOut(BaseModel):
     chat_type: Optional[str] = None
     query: Optional[str] = None
     response: Optional[str] = None
+    metadata: Dict[str, Any] = Field(default_factory=dict)
     create_time: Optional[datetime] = None
 
 
@@ -72,6 +73,7 @@ def _msg_out(m) -> MessageOut:
         chat_type=m.chat_type,
         query=m.query,
         response=m.response,
+        metadata=m.meta_data or {},
         create_time=m.create_time,
     )
 
