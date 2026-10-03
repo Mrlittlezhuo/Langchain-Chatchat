@@ -93,9 +93,14 @@ def delete_owned_conversation(
     c = get_owned_conversation(session, conversation_id, owner_id)
     if c is None:
         raise ConversationNotOwned(conversation_id)
-    # 同事务内先删消息再删会话
+    # 同事务内先删短期摘要和消息，再删会话。长期记忆是用户级事实，保留。
     from chatchat.server.db.models.message_model import MessageModel
+    from chatchat.server.db.models.session_summary_model import SessionSummaryModel
 
+    session.query(SessionSummaryModel).filter(
+        SessionSummaryModel.conversation_id == conversation_id,
+        SessionSummaryModel.owner_id == owner_id,
+    ).delete(synchronize_session=False)
     session.query(MessageModel).filter(
         MessageModel.conversation_id == conversation_id
     ).delete(synchronize_session=False)

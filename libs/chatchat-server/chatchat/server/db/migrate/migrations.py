@@ -12,6 +12,9 @@
 - v5（任务 006）：为 ``owner_id IS NULL`` 的存量会话归属到一个明确的
   遗留用户 ``__legacy__``（role=user, status=active,
   must_change_password=1）；不修改 message 行、知识库表，不重建向量索引。
+- v6（任务 007）：新增用户级分层长期记忆表 ``memory`` 与短期会话摘要表
+  ``session_summary``；长期记忆按用户隔离、独立于 conversation/message，
+  不进入公共知识库；会话摘要记录"已摘要到的位置"以支持增量摘要。
 
 已发布版本不得修改；后续业务 schema 变化追加新版本迁移函数。
 """
@@ -203,12 +206,90 @@ def _v5_legacy_conversation_owner(conn: Connection) -> None:
     )
 
 
+_MEMORY_TABLE = """
+CREATE TABLE IF NOT EXISTS memory (
+    id VARCHAR(32) PRIMARY KEY,
+    owner_id VARCHAR(32) NOT NULL,
+    memory_key VARCHAR(128) NOT NULL,
+    type VARCHAR(16) NOT NULL DEFAULT 'fact',
+    content VARCHAR(2000) NOT NULL,
+    source VARCHAR(16) NOT NULL DEFAULT 'chat',
+    source_conversation_id VARCHAR(32),
+    source_message_id VARCHAR(32),
+    importance INTEGER NOT NULL DEFAULT 1,
+    enabled BOOLEAN NOT NULL DEFAULT 1,
+    create_time TIMESTAMP,
+    update_time TIMESTAMP,
+    UNIQUE (owner_id, memory_key),
+    CHECK (type IN ('preference', 'fact', 'goal', 'important')),
+    CHECK (importance >= 1 AND importance <= 5)
+)
+"""
+
+_SESSION_SUMMARY_TABLE = """
+CREATE TABLE IF NOT EXISTS session_summary (
+    id VARCHAR(32) PRIMARY KEY,
+    owner_id VARCHAR(32) NOT NULL,
+    conversation_id VARCHAR(32) NOT NULL,
+    summary VARCHAR(4000) NOT NULL DEFAULT '',
+    summarized_message_id VARCHAR(32),
+    summarized_count INTEGER NOT NULL DEFAULT 0,
+    create_time TIMESTAMP,
+    update_time TIMESTAMP,
+    UNIQUE (conversation_id),
+    CHECK (summarized_count >= 0)
+)
+"""
+
+_MEMORY_INDEXES = [
+    "CREATE INDEX IF NOT EXISTS ix_memory_owner_id ON memory (owner_id)",
+    "CREATE INDEX IF NOT EXISTS ix_memory_owner_type ON memory (owner_id, type)",
+    "CREATE INDEX IF NOT EXISTS ix_session_summary_owner_id ON session_summary (owner_id)",
+    "CREATE INDEX IF NOT EXISTS ix_session_summary_conversation_id ON session_summary (conversation_id)",
+]
+
+
+def _v6_user_memory(conn: Connection) -> None:
+    """v6：新增用户级分层长期记忆表、短期会话摘要表，及用户级自动记忆开关。
+
+    - ``memory``：用户级长期记忆，独立于 conversation/message，按用户隔离，
+      不进入公共知识库/公共向量索引；owner_id 来自服务端认证上下文。
+    - ``session_summary``：每会话一行的短期摘要，记录"已摘要到的位置"，
+      支持增量摘要；不是长期事实（长期召回只读 memory）。
+    - ``user_account.memory_auto_enabled``：用户级"自动提取长期记忆"开关；
+      表尚未创建时跳过（由 create_all 用新版模型建带该列的表），已有表则
+      补列并默认 TRUE（幂等）。
+    - 仅 schema，不创建默认记忆/账户，不修改既有 user/conversation/message
+      与知识库表，不重建向量索引；重复执行安全（IF NOT EXISTS / 已存在列跳过）。
+    - 失败即回滚且版本不记录（由迁移框架保证）。
+    """
+    conn.execute(text(_MEMORY_TABLE))
+    conn.execute(text(_SESSION_SUMMARY_TABLE))
+    for stmt in _MEMORY_INDEXES:
+        conn.execute(text(stmt))
+
+    # 给 user_account 追加自动记忆开关（仅在表已存在时；幂等）
+    from sqlalchemy import inspect
+
+    inspector = inspect(conn)
+    if "user_account" in inspector.get_table_names():
+        existing_cols = {c["name"] for c in inspector.get_columns("user_account")}
+        if "memory_auto_enabled" not in existing_cols:
+            conn.execute(
+                text(
+                    "ALTER TABLE user_account "
+                    "ADD COLUMN memory_auto_enabled BOOLEAN NOT NULL DEFAULT 1"
+                )
+            )
+
+
 _MIGRATIONS = [
     (1, "baseline", _v1_baseline),
     (2, "user_account", _v2_user_account),
     (3, "conversation_owner", _v3_conversation_owner),
     (4, "openai_file", _v4_openai_file),
     (5, "legacy_conversation_owner", _v5_legacy_conversation_owner),
+    (6, "user_memory", _v6_user_memory),
 ]
 
 

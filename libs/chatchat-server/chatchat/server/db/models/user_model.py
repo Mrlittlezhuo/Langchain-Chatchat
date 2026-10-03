@@ -66,6 +66,12 @@ class UserModel(Base):
         Boolean, nullable=False, default=True, comment="是否必须修改密码"
     )
     auth_version = Column(Integer, nullable=False, default=1, comment="认证版本")
+    memory_auto_enabled = Column(
+        Boolean,
+        nullable=False,
+        default=True,
+        comment="是否允许自动提取长期记忆（用户可关闭）",
+    )
     create_time = Column(
         DateTime,
         nullable=False,

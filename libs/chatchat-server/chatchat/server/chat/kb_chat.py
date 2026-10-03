@@ -22,6 +22,7 @@ from chatchat.server.db.repository import (
     update_message,
 )
 from chatchat.server.knowledge_base.temp_files import assert_temp_owner
+from chatchat.server.memory import memory_service
 from sqlalchemy.orm import Session
 from chatchat.server.agent.tools_factory.search_internet import search_engine
 from chatchat.server.api_server.api_schemas import OpenAIChatOutput
@@ -107,6 +108,27 @@ async def kb_chat(query: str = Body(..., description="用户输入", examples=["
             nonlocal history, prompt_name, max_tokens
 
             history = [History.from_data(h) for h in history]
+
+            # 自动记忆提取：在本轮构造记忆上下文前，把用户明确表达
+            # （如“请记住...”）写入长期记忆。失败不阻断正常回答。
+            try:
+                memory_service.auto_extract(
+                    session,
+                    user.id,
+                    query,
+                    source_conversation_id=conversation_id,
+                    source_message_id=message_id,
+                )
+            except Exception:
+                pass
+
+            # 会话摘要：历史超过阈值时增量压缩较早内容（默认基于规则，
+            # 不依赖模型），记录覆盖位置。失败不阻断正常回答。
+            try:
+                if conversation_id:
+                    memory_service.summarize_conversation(session, user.id, conversation_id)
+            except Exception:
+                pass
 
             if mode == "local_kb":
                 kb = KBServiceFactory.get_service_by_name(kb_name)
@@ -213,8 +235,17 @@ async def kb_chat(query: str = Body(..., description="用户输入", examples=["
                 prompt_name = "empty"
             prompt_template = get_prompt_template("rag", prompt_name)
             input_msg = History(role="user", content=prompt_template).to_msg_template(False)
+            # 用户记忆注入：与普通聊天同一套记忆（长期记忆 + 较早内容摘要），
+            # 作为独立系统消息置于 RAG 输入之前（当前用户本轮表达优先）。
+            # 失败/无记忆时为空，不改变原行为，也不阻断正常回答。
+            _mem_msgs = [
+                History(role=m["role"], content=m["content"]).to_msg_template(False)
+                for m in memory_service.memory_system_messages(
+                    session, user.id, query, conversation_id
+                )
+            ]
             chat_prompt = ChatPromptTemplate.from_messages(
-                [i.to_msg_template() for i in history] + [input_msg])
+                _mem_msgs + [i.to_msg_template() for i in history] + [input_msg])
 
             chain = chat_prompt | llm
 

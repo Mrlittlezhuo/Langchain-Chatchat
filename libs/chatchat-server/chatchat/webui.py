@@ -7,6 +7,7 @@ from chatchat.server.utils import api_address
 from chatchat.webui_pages.dialogue.dialogue import dialogue_page, clear_private_caches
 from chatchat.webui_pages.kb_chat import kb_chat
 from chatchat.webui_pages.mcp import mcp_management_page
+from chatchat.webui_pages.my_memory import my_memory_page
 from chatchat.webui_pages.knowledge_base.knowledge_base import knowledge_base_page
 from chatchat.webui_pages.utils import *
 from chatchat.webui_pages import cookie_state
@@ -145,7 +146,7 @@ def render_business_sidebar(api: ApiRequest, user: dict, cookie_manager=None) ->
         # 避免组件在浏览器侧未渲染时整行菜单消失。
         selected_page = st.radio(
             "功能",
-            ["多功能对话", "RAG 对话", "知识库管理", "MCP 管理"],
+            ["多功能对话", "RAG 对话", "知识库管理", "MCP 管理", "我的记忆"],
             key="selected_page",
             label_visibility="collapsed",
         )
@@ -238,5 +239,7 @@ if __name__ == "__main__":
         kb_chat(api=api)
     elif selected_page == "MCP 管理":
         mcp_management_page(api=api)
+    elif selected_page == "我的记忆":
+        my_memory_page(api=api, is_lite=is_lite)
     else:
         dialogue_page(api=api, is_lite=is_lite)

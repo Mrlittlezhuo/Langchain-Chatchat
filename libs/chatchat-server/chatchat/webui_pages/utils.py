@@ -26,6 +26,10 @@ class AuthenticationError(Exception):
     """API 返回 401（未登录/Token 过期/用户失效）时抛出，WebUI 据此清理本地登录状态。"""
 
 
+class MemoryApiError(Exception):
+    """记忆接口返回非 2xx（非认证）状态时抛出，如 404（他人记忆）/400（参数错误）。"""
+
+
 class ApiRequest:
     """
     api.py调用的封装（同步模式）,简化api调用方式
@@ -548,6 +552,52 @@ class ApiRequest:
         if isinstance(data, dict):
             return data.get("messages", [])
         return data if isinstance(data, list) else []
+
+    # 我的记忆（memories）相关操作 —— 后端只返回/操作当前用户自己的记忆
+    # 接口直接返回 JSON（无 {"code","data"} 包装）；401/403 抛出 AuthenticationError
+
+    def _mem_request(self, method, url, **kw) -> httpx.Response:
+        fn = getattr(self, method)
+        response = fn(url, retry=1, **kw)
+        if response is None:
+            raise AuthenticationError("无法连接API服务器")
+        self._raise_for_auth(response)
+        if response.status_code >= 400:
+            raise MemoryApiError(f"记忆操作失败：服务器返回 {response.status_code}")
+        return response
+
+    def list_memories(self) -> List[Dict]:
+        """对应 GET /memories，返回当前用户记忆列表（update_time DESC）。"""
+        r = self._mem_request("get", "/memories")
+        return self._get_response_value(r, as_json=True)
+
+    def create_memory(self, type: str, content: str, importance: int = 1,
+                      source: str = "user") -> Dict:
+        """对应 POST /memories，创建当前用户记忆。"""
+        data = {"type": type, "content": content, "importance": importance, "source": source}
+        r = self._mem_request("post", "/memories", json=data)
+        return self._get_response_value(r, as_json=True)
+
+    def update_memory(self, memory_id: str, **fields) -> Dict:
+        """对应 PATCH /memories/{id}，更新当前用户记忆（仅传非 None 字段）。"""
+        data = {k: v for k, v in fields.items() if v is not None}
+        r = self._mem_request("patch", f"/memories/{memory_id}", json=data)
+        return self._get_response_value(r, as_json=True)
+
+    def delete_memory(self, memory_id: str) -> Dict:
+        """对应 DELETE /memories/{id}，删除当前用户记忆。"""
+        r = self._mem_request("delete", f"/memories/{memory_id}")
+        return self._get_response_value(r, as_json=True)
+
+    def get_auto_memory(self) -> bool:
+        """对应 GET /memories/auto，返回当前用户自动记忆开关。"""
+        r = self._mem_request("get", "/memories/auto")
+        return bool(self._get_response_value(r, as_json=True).get("auto_memory"))
+
+    def set_auto_memory(self, enabled: bool) -> Dict:
+        """对应 PATCH /memories/auto?enabled=...，设置当前用户自动记忆开关。"""
+        r = self._mem_request("patch", f"/memories/auto?enabled={'true' if enabled else 'false'}")
+        return self._get_response_value(r, as_json=True)
 
     # 知识库相关操作
 

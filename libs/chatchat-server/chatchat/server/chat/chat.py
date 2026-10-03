@@ -27,6 +27,7 @@ from chatchat.server.chat.utils import History
 from chatchat.server.db.repository import add_message, update_message
 
 from langchain_chatchat import ChatPlatformAI, PlatformToolsRunnable
+from chatchat.server.memory import memory_service
 from chatchat.server.utils import (
     MsgType,
     get_ChatOpenAI,
@@ -76,7 +77,7 @@ def create_models_from_config(configs, callbacks, stream, max_tokens):
 
 def create_models_chains(
     history_len, prompts, models, tools, callbacks, conversation_id,
-    session, owner_id, metadata, use_mcp: bool = False
+    session, owner_id, metadata, use_mcp: bool = False, query: str = ""
 ):
 
     # 从数据库获取conversation_id对应的 intermediate_steps 、 mcp_connections
@@ -90,9 +91,25 @@ def create_models_chains(
     # 返回的记录按时间倒序，转为正序
     messages = list(reversed(messages))
     history: List[Union[List, Tuple]] = []
+    # 会话摘要：历史超过阈值时增量压缩较早内容（默认基于规则，不依赖模型），
+    # 记录覆盖位置，避免每轮重复总结全部历史。失败不阻断正常回答。
+    try:
+        if session is not None and owner_id and conversation_id:
+            memory_service.summarize_conversation(session, owner_id, conversation_id)
+    except Exception:
+        pass
+    # 用户记忆注入：长期记忆段 + 较早内容摘要段，作为独立系统消息置于近期
+    # 轮次之前（当前用户本轮明确表达优先于记忆）。失败/无会话时返回空列表，
+    # 不改变无记忆时的原有行为，也不阻断正常回答。
+    memory_msgs = memory_service.memory_system_messages(
+        session, owner_id, query, conversation_id
+    )
     for message in messages:
-        history.append({"role": "user", "content": message["query"]}) 
-        history.append({"role": "assistant", "content":  message["response"]})  
+        history.append({"role": "user", "content": message["query"]})
+        history.append({"role": "assistant", "content":  message["response"]})
+    for msg in reversed(memory_msgs):
+        # 置于历史最前，作为独立、清晰的记忆/摘要段
+        history.insert(0, dict(msg))
 
     intermediate_steps = loads(messages[-1].get("metadata", {}).get("intermediate_steps"), valid_namespaces=["langchain_chatchat", "agent_toolkits", "all_tools", "tool"] )  if len(messages)>0 and messages[-1].get("metadata") is not None else []
     llm = models["action_model"]
@@ -181,6 +198,29 @@ async def chat(
             all_tools = get_tool().values()
             tools = [tool for tool in all_tools if tool.name in tool_config]
             tools = [t.copy(update={"callbacks": callbacks}) for t in tools]
+            # OpenAI 兼容路由会提前创建消息；直接调用 chat() 时在这里补建，
+            # 这样自动提取的记忆始终可以定位到来源会话和消息。
+            if current_message_id is None:
+                current_message_id = add_message(
+                    session=session,
+                    owner_id=owner_id,
+                    chat_type="llm_chat",
+                    query=query,
+                    conversation_id=conversation_id,
+                )
+            # 自动记忆提取：在本轮构造记忆上下文前，把用户明确表达
+            # （如"请记住..."）写入长期记忆。失败不阻断正常回答。
+            try:
+                if session is not None and owner_id:
+                    memory_service.auto_extract(
+                        session,
+                        owner_id,
+                        query,
+                        source_conversation_id=conversation_id,
+                        source_message_id=current_message_id,
+                    )
+            except Exception:
+                pass
             full_chain, agent_executor = create_models_chains(
                 prompts=prompts,
                 models=models,
@@ -191,19 +231,9 @@ async def chat(
                 session=session,
                 owner_id=owner_id,
                 metadata=metadata,
-                use_mcp = use_mcp
+                use_mcp = use_mcp,
+                query=query,
             )
-            # The OpenAI-compatible route has already created this message.
-            # Reuse it so one user turn is stored only once.  Direct callers of
-            # chat() still get a new message when no message_id was supplied.
-            if current_message_id is None:
-                current_message_id = add_message(
-                        session=session,
-                        owner_id=owner_id,
-                        chat_type="llm_chat",
-                        query=query,
-                        conversation_id=conversation_id,
-                )
             chat_iterator = full_chain.invoke({
                 "input": query
             })
